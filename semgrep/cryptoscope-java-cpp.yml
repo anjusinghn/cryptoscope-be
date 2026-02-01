@@ -1,0 +1,23 @@
+rules:
+  # =====================
+  # Java
+  # =====================
+  - id: cryptoscope.java.hash.md5
+    languages: [java]
+    message: MD5 detected (collision-prone, not suitable for security).
+    severity: ERROR
+    metadata:
+      category: hash
+      recommendation: Use SHA-256/384/512 or SHA-3/BLAKE2/3.
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance($ALGO)
+          - pattern: MessageDigest.getInstance($ALGO, ...)
+          - pattern: java.security.MessageDigest.getInstance($ALGO)
+          - pattern: java.security.MessageDigest.getInstance($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']MD5[\"']$"
+
+  - id: cryptoscope.java.hash.sha1
+    languages: [java]
