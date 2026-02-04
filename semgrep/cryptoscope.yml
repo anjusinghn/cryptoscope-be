@@ -1,0 +1,23 @@
+rules:
+  # =====================
+  # JavaScript / TypeScript (Node / browser)
+  # =====================
+  - id: cryptoscope.node.createcipher.deprecated
+    languages: [javascript, typescript]
+    message: crypto.createCipher/Decipher is deprecated and insecure.
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use crypto.createCipheriv/CreateDecipheriv with AEAD (e.g., aes-256-gcm).
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipher(...)
+          - pattern: crypto.createDecipher(...)
+
+  - id: cryptoscope.node.aes.ecb
+    languages: [javascript, typescript]
+    message: AES-ECB detected (deterministic, leaks patterns).
+    severity: ERROR
+    metadata:
+      category: mode
+      recommendation: Use an AEAD mode like AES-GCM/ChaCha20-Poly1305.
