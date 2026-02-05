@@ -21,3 +21,26 @@ rules:
 
   - id: cryptoscope.java.hash.sha1
     languages: [java]
+    message: SHA-1 detected (collision-prone, avoid for new designs).
+    severity: ERROR
+    metadata:
+      category: hash
+      recommendation: Prefer SHA-256/384+, BLAKE2/3, or SHA-3.
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance($ALGO)
+          - pattern: MessageDigest.getInstance($ALGO, ...)
+          - pattern: java.security.MessageDigest.getInstance($ALGO)
+          - pattern: java.security.MessageDigest.getInstance($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?sha-?1[\"']?$"
+
+  - id: cryptoscope.java.hash.sha2
+    languages: [java]
+    message: SHA-2 family usage detected (SHA-224/256/384/512).
+    severity: INFO
+    metadata:
+      category: hash
+      recommendation: Ensure a secure construction (e.g., HMAC, HKDF) where appropriate.
+    patterns:
