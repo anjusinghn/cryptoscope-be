@@ -16,3 +16,20 @@ pids/
 *.pid.lock
 
 # Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+build/
+dist/
+out/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Caches and temp
+.cache/
+.tmp/
+tmp/
