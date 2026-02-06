@@ -19,3 +19,24 @@ router.get('/api/scan-file', async (req, res) => {
     const scan = await loadScanResult(versionId);
     if (!scan) return res.status(404).json({ error: 'Scan not found' });
     const file = (scan.files || []).find((f) => (
+      f.path === rel || rel.endsWith(f.path) || rel.endsWith('/' + f.path) || rel.endsWith('\\' + f.path)
+    ));
+    if (!file) return res.status(404).json({ error: 'File not found in scan' });
+    if (typeof file.content === 'string') return res.json({ content: file.content });
+    // As a fallback, attempt repo meta root if present in memory (best-effort)
+    try {
+      const meta = getRepoMeta(versionId);
+      const root = meta?.scanRoot || meta?.root;
+      if (root) {
+        const full = path.join(root, file.path);
+        const content = await fs.promises.readFile(full, 'utf8');
+        return res.json({ content });
+      }
+    } catch {}
+    return res.status(404).json({ error: 'File content unavailable' });
+  } catch (err) {
+    log.error('api/scan-file error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to load file from scan' });
+  }
+});
+
