@@ -21,3 +21,25 @@ router.post('/api/analyze', async (req, res) => {
     const absPath = path.resolve(targetPath);
     const stat = await safeStat(absPath);
     if (!stat) {
+      return res.status(404).json({ error: 'Path not found.' });
+    }
+    if (!stat.isDirectory()) {
+      return res.status(400).json({ error: 'Path must be a directory.' });
+    }
+
+    const files = await collectWorkspaceFiles(absPath);
+    if (!files.length) {
+      return res.json({
+        status: 'ok',
+        total_files: 0,
+        crypto_files_found: 0,
+        message: 'No supported source files found in directory.',
+        basic_analysis: [],
+        detailed_reviews: [],
+      });
+    }
+
+    const versionId = `local:${crypto.createHash('sha1').update(absPath).digest('hex')}:${stat.mtimeMs}`;
+    registerWorkspace({ id: versionId, root: absPath, scanRoot: absPath, meta: { source: 'local', path: absPath } });
+
+    const scan = await runWorkspaceScan({
