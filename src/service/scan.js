@@ -7,3 +7,12 @@ async function runWorkspaceScan({ files, versionId, sourceType, sourceLocator, m
     versionId,
     sourceType,
     sourceLocator,
+    meta,
+    concurrency: Number.isFinite(concurrency) && concurrency > 0 ? concurrency : DEFAULT_CONCURRENCY,
+    skipIndexing: INDEXING_DISABLED,
+  });
+}
+
+module.exports = {
+  runWorkspaceScan,
+};
