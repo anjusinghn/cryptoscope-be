@@ -17,3 +17,22 @@ function posixPath(p) {
 async function safeStat(p) {
   try {
     return await fs.promises.stat(p);
+  } catch (err) {
+    return null;
+  }
+}
+
+async function collectWorkspaceFiles(root) {
+  log.info('=== COLLECT FILES: Starting file collection ===', { 
+    root,
+    step: 'COLLECT_START'
+  });
+  
+  const queue = [root];
+  const results = [];
+  const visited = new Set();
+  const rootReal = await fs.promises.realpath(root).catch(() => root);
+  
+  log.info('=== COLLECT FILES: Root resolved ===', { 
+    root,
+    rootReal,
