@@ -14,3 +14,19 @@ if (enableIndexingEnv === '1' || enableIndexingEnv === 'true' || enableIndexingE
 } else if (disableIndexingEnv.length) {
   INDEXING_DISABLED = disableIndexingEnv === '1' || disableIndexingEnv === 'true' || disableIndexingEnv === 'yes';
 }
+
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  credentials: true,
+  origin: (origin, callback) => {
+    // Allow requests without Origin (like curl) and same-origin
+    if (!origin) {
+      log.info('cors origin check', { origin: null, allowed: true });
+      return callback(null, true);
+    }
+    const allowed = ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin);
+    log.info('cors origin check', { origin, allowed, allowedOrigins: ALLOWED_ORIGINS });
