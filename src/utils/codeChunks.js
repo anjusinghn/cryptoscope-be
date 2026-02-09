@@ -18,3 +18,23 @@ function chunkJsOrTs(source, filename) {
       allowHashBang: true,
       plugins,
     });
+  } catch (err) {
+    log.warn('babel parse failed, fallback chunking', { filename, error: String(err?.message || err) });
+    return [];
+  }
+  const lines = source.split(/\r?\n/);
+  const out = [];
+  const pushNode = (node, label) => {
+    if (!node?.loc) return;
+    const start = node.loc.start.line;
+    const end = node.loc.end.line;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return;
+    const content = sliceLines(lines, start, end);
+    out.push({ startLine: start, endLine: end, content, label });
+  };
+  const body = ast.program?.body || [];
+  for (const node of body) {
+    switch (node.type) {
+      case 'FunctionDeclaration':
+        pushNode(node, node.id?.name ? `function ${node.id.name}` : 'function');
+        break;
