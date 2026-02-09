@@ -11,3 +11,15 @@ try {
   version = pkg.version || version;
 } catch {}
 
+const HEALTH_PAYLOAD = Object.freeze({ ok: true, service: 'cryptoscope-be', version });
+
+function sendHealth(_req, res) {
+  res.json(HEALTH_PAYLOAD);
+}
+
+router.get('/healthz', sendHealth);
+router.get('/api/healthz', sendHealth);
+router.get('/health', sendHealth);
+router.get('/api/health', sendHealth);
+
+module.exports = router;
