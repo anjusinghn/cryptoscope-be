@@ -21,3 +21,26 @@ router.post('/api/git-clone', async (req, res) => {
     }
 
     let parsed;
+    try {
+      parsed = parseGithubUrl(target);
+    } catch (err) {
+      log.warn('api/git-clone invalid url', { url: target });
+      return res.status(400).json({ error: 'Invalid GitHub URL. Only github.com is supported.' });
+    }
+
+    const { id, scanRoot, versionId, meta } = await cloneGithub(target);
+    log.info('=== GIT CLONE COMPLETE - Starting analysis ===', { 
+      versionId, 
+      scanRoot, 
+      id,
+      step: 'CLONE_COMPLETE'
+    });
+    
+    registerWorkspace({ id, root: meta.root, scanRoot, meta: { ...meta, source: 'github' } });
+
+    if (!force) {
+      log.info('Checking for cached scan', { versionId });
+      const cached = await getCachedScan(versionId);
+      if (cached) {
+        log.info('Found cached scan, returning cached result', { versionId });
+        const response = buildAnalysisResult(cached);
