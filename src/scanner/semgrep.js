@@ -21,3 +21,26 @@ function langToExt(lang) {
 
 function mapSeverity(s) {
   const v = String(s || '').toUpperCase();
+  if (v === 'ERROR' || v === 'HIGH' || v === 'CRITICAL') return 'high';
+  if (v === 'WARNING' || v === 'MEDIUM') return 'medium';
+  if (v === 'LOW') return 'low';
+  return 'info';
+}
+
+function summarize(findings) {
+  return findings.reduce((acc, f) => {
+    acc.total += 1;
+    acc.byCategory[f.category] = (acc.byCategory[f.category] || 0) + 1;
+    acc.bySeverity[f.severity] = (acc.bySeverity[f.severity] || 0) + 1;
+    return acc;
+  }, { total: 0, byCategory: {}, bySeverity: {} });
+}
+
+function transformSemgrep(json, filename, language, code) {
+  const out = [];
+  const results = Array.isArray(json?.results) ? json.results : [];
+  for (const r of results) {
+    const line = r?.start?.line || r?.extra?.start?.line || 1;
+    const column = r?.start?.col || r?.extra?.start?.col || 1;
+    const msg = r?.extra?.message || '';
+    const sev = mapSeverity(r?.extra?.severity || r?.severity);
