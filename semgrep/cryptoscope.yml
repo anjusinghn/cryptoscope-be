@@ -21,3 +21,26 @@ rules:
     metadata:
       category: mode
       recommendation: Use an AEAD mode like AES-GCM/ChaCha20-Poly1305.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, ...)
+          - pattern: createCipheriv($ALGO, ...)
+          - pattern: crypto.createDecipheriv($ALGO, ...)
+          - pattern: createDecipheriv($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*ecb[^\"']*[\"']$"
+
+  - id: cryptoscope.node.aes.cbc
+    languages: [javascript, typescript]
+    message: AES-CBC detected. Correct IV handling and authentication needed.
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Prefer AEAD (AES-GCM/ChaCha20-Poly1305) when available.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, ...)
+          - pattern: createCipheriv($ALGO, ...)
+          - pattern: crypto.createDecipheriv($ALGO, ...)
+          - pattern: createDecipheriv($ALGO, ...)
