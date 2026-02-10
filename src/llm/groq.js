@@ -21,3 +21,25 @@ function fallbackRank(findings) {
   // Map existing severities to low/medium/high deterministically
   const map = { high: 'high', warning: 'medium', info: 'low' };
   const items = findings.map((f, index) => ({
+    index,
+    severity: map[f.severity] || 'low',
+    reason: `Mapped from static severity '${f.severity}'.`,
+  }));
+  const enriched = findings.map((f, i) => ({ ...f, rankedSeverity: items[i].severity, rankReason: items[i].reason }));
+  return { items, enriched, usedLLM: false };
+}
+
+function summarizeFindingForPrompt(f, index) {
+  return {
+    index,
+    ruleId: f.ruleId,
+    category: f.category,
+    initialSeverity: f.severity,
+    description: f.description,
+    snippet: typeof f.match === 'string' ? (f.match.length > 200 ? f.match.slice(0, 200) + '…' : f.match) : String(f.match),
+    line: f.line,
+    column: f.column,
+  };
+}
+
+/**

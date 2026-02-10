@@ -11,3 +11,16 @@ RUN apt-get update \
   && /opt/semgrep/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
   && /opt/semgrep/bin/pip install --no-cache-dir semgrep \
   && ln -s /opt/semgrep/bin/semgrep /usr/local/bin/semgrep \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install app dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Copy application source
+COPY . .
+
+# Prepare persistence dirs and permissions
+RUN mkdir -p /var/data/cryptoscope /var/data/lancedb \
+  && chown -R node:node /var/data \
+  && chown -R node:node /app
