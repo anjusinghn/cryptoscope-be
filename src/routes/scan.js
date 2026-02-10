@@ -15,3 +15,19 @@ router.post('/api/scan', async (req, res) => {
       return res.status(400).json({ error: 'Missing `code` string in body.' });
     }
     const fname = filename || 'snippet';
+    const result = scanCode(code, fname);
+    const artifact = await buildFileArtifacts({ path: fname, code, scanResult: result });
+    try {
+      const enriched = await enrichFindingsInMemory({
+        findings: artifact.findings,
+        chunks: artifact.chunks,
+        path: artifact.path,
+        versionId: 'snippet',
+      });
+      artifact.findings = artifact.findings.map((f, idx) => ({
+        ...f,
+        enrichment: enriched[idx]?.enrichment || f.enrichment || null,
+      }));
+    } catch (err) {
+      log.warn('single-file enrichment failed', { error: String(err?.message || err) });
+    }
