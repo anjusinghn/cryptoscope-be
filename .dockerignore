@@ -17,3 +17,22 @@ pnpm-debug.log*
 # Build artifacts
 build
 dist
+out
+coverage
+.nyc_output
+
+# App data and caches
+.data
+.next
+data
+lancedb
+uploads
+storage
+.extracted
+.cache
+.tmp
+tmp
+temp
+
+# Semgrep local/cache + generated outputs
+.semgrep
