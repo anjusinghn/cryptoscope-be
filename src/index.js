@@ -20,3 +20,25 @@ const { initDb, loadScanResult } = require('./db');
 const { searchChunks: searchChunksLance } = require('./db/lance');
 const { embedTexts } = require('./utils/embed');
 const { heuristicEnrichment } = require('./llm/enrich');
+
+const app = express();
+
+// Config --------------------------------------------------------------
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '5mb' }));
+
+// Routers -------------------------------------------------------------
+const healthRouter = require('./routes/health');
+const llmRouter = require('./routes/llm');
+const scanRouter = require('./routes/scan');
+const analyzeRouter = require('./routes/analyze');
+const repoRouter = require('./routes/repo');
+const filesRouter = require('./routes/files');
+const uploadRouter = require('./routes/upload');
+
+app.use(healthRouter);
+app.use(llmRouter);
+app.use(scanRouter);
+app.use(analyzeRouter);
+app.use(repoRouter);
