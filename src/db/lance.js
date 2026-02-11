@@ -20,3 +20,24 @@ function resolveDbDir() {
   if (configured) {
     fs.mkdirSync(configured, { recursive: true });
     return configured;
+  }
+  const defaultDir = path.resolve('lancedb');
+  fs.mkdirSync(defaultDir, { recursive: true });
+  return defaultDir;
+}
+
+async function getDb() {
+  const lib = await getLanceLib();
+  if (!lib || !lib.connect) return null;
+  const { connect } = lib;
+  const dir = resolveDbDir();
+  const db = await connect(dir);
+  return db;
+}
+
+async function ensureTable() {
+  if (!tablePromise) {
+    tablePromise = (async () => {
+      try {
+        const lib = await getLanceLib();
+        if (!lib) return null;
