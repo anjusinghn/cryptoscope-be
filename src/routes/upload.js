@@ -19,3 +19,24 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: Number(process.env.ZIP_MAX_BYTES || 80 * 1024 * 1024),
+  },
+});
+
+router.post('/api/upload-zip', upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Missing file upload.' });
+  }
+  const hash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+  const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'cryptoscope-zip-'));
+  const zipPath = path.join(tempDir, 'upload.zip');
+  try {
+    await fs.promises.writeFile(zipPath, req.file.buffer);
+    const extractDir = path.join(tempDir, 'extract');
+    await fs.promises.mkdir(extractDir, { recursive: true });
+    await extract(zipPath, { dir: extractDir });
+
+    const cacheKey = `zip:${hash}`;
+    if (!req.body?.force) {
+      const cached = await getCachedScan(cacheKey);
+      if (cached) {
+        const response = buildAnalysisResult(cached);
