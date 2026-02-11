@@ -20,3 +20,24 @@ async function ensureInitialized() {
       })
       .catch((err) => {
         log.error('failed to prepare datastore', { error: String(err?.message || err) });
+        throw err;
+      });
+  }
+  return initPromise;
+}
+
+function scanFilePath(versionId) {
+  return path.join(scansDir, `${encodeURIComponent(versionId)}.json`);
+}
+
+function toVectorLiteral(values) {
+  if (!Array.isArray(values)) return null;
+  const nums = values.map((v) => {
+    const n = typeof v === 'number' ? v : Number(v);
+    if (!Number.isFinite(n)) return 0;
+    return n;
+  });
+  return '[' + nums.join(',') + ']';
+}
+
+function parseVectorLiteral(value) {
