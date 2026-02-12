@@ -43,3 +43,25 @@ router.post('/api/analyze', async (req, res) => {
     registerWorkspace({ id: versionId, root: absPath, scanRoot: absPath, meta: { source: 'local', path: absPath } });
 
     const scan = await runWorkspaceScan({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId,
+      sourceType: 'local',
+      sourceLocator: absPath,
+      meta: { path: absPath },
+      concurrency,
+    });
+
+    enrichFindingsForVersion(versionId).catch((err) => {
+      log.warn('enrich (local) failed', { error: String(err?.message || err) });
+    });
+
+    const response = buildAnalysisResult(scan);
+    response.versionId = versionId;
+    return res.json(response);
+  } catch (err) {
+    log.error('api/analyze error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to analyze directory.' });
+  }
+});
+
+// SSE endpoint for local directory scanning with real-time progress
