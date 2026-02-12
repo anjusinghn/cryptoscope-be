@@ -33,3 +33,20 @@ coverage/
 .cache/
 .tmp/
 tmp/
+temp/
+
+# App-generated data (do not commit local datasets)
+lancedb/
+data/
+uploads/
+storage/
+.extracted/
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
