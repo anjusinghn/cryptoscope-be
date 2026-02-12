@@ -30,3 +30,19 @@ function sanitizeFile(file) {
           endLine: chunk.endLine,
           label: chunk.label,
         }))
+      : [],
+  };
+}
+
+function buildRepoPayload({ scan, repoMeta, root, cached }) {
+  const summary = scan.summary || scan.version?.summary || { total: 0, byCategory: {}, bySeverity: {} };
+  const files = Array.isArray(scan.files) ? scan.files.map(sanitizeFile) : [];
+  return {
+    repo: {
+      id: repoMeta?.id || null,
+      url: repoMeta?.url || null,
+      owner: repoMeta?.owner || null,
+      repo: repoMeta?.repo || null,
+      ref: repoMeta?.ref || null,
+      subpath: repoMeta?.subpath || null,
+      commit: repoMeta?.commit || null,
