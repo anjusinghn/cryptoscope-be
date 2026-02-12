@@ -37,3 +37,23 @@ function printFindings(result) {
     return;
   }
   for (const f of result.findings) {
+    console.log(`  ${f.line}:${f.column}  ${sevColor(f.severity)}  ${f.ruleId}`);
+    console.log(`    ${f.description}`);
+    if (f.recommendation) console.log(`    Fix: ${f.recommendation}`);
+    console.log(`    Match: ${f.match}`);
+  }
+}
+
+async function scanFile(p) {
+  const content = fs.readFileSync(p, 'utf8');
+  const scanRes = await apiFetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: content, filename: p }) });
+  if (!scanRes.ok) throw new Error(`scan failed: ${await scanRes.text()}`);
+  const result = await scanRes.json();
+  printFindings(result);
+  // Rank severity (optional)
+  if (Array.isArray(result.findings) && result.findings.length > 0) {
+    const rankRes = await apiFetch('/api/rank-severity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ findings: result.findings }) });
+    if (rankRes.ok) {
+      const ranked = await rankRes.json();
+      console.log(`\nRanked severities received (${Array.isArray(ranked?.enriched) ? ranked.enriched.length : 0})`);
+    }
