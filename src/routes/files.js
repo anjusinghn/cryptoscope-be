@@ -40,3 +40,24 @@ router.get('/api/scan-file', async (req, res) => {
   }
 });
 
+// Return raw file from a registered repo/workspace
+router.get('/api/repo-file', async (req, res) => {
+  try {
+    const id = String(req.query.id || '');
+    const rel = String(req.query.path || '');
+    if (!id || !rel) return res.status(400).json({ error: 'Missing id or path' });
+    const meta = getRepoMeta(id);
+    const root = meta?.scanRoot || meta?.root;
+    if (!root) return res.status(404).json({ error: 'Workspace not found' });
+    const full = path.join(root, rel);
+    try {
+      const content = await fs.promises.readFile(full, 'utf8');
+      return res.json({ content });
+    } catch (err) {
+      log.warn('api/repo-file read failed', { id, rel, error: String(err?.message || err) });
+      return res.status(404).json({ error: 'File not found' });
+    }
+  } catch (err) {
+    log.error('api/repo-file error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to read file' });
+  }

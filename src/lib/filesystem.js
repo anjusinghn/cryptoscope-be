@@ -36,3 +36,22 @@ async function collectWorkspaceFiles(root) {
   log.info('=== COLLECT FILES: Root resolved ===', { 
     root,
     rootReal,
+    step: 'COLLECT_ROOT_RESOLVED'
+  });
+  
+  while (queue.length) {
+    const current = queue.pop();
+    let entries;
+    try {
+      entries = await fs.promises.readdir(current, { withFileTypes: true });
+    } catch (err) {
+      log.warn('collectWorkspaceFiles readdir failed', { path: current, error: String(err?.message || err) });
+      continue;
+    }
+    
+    log.debug('=== COLLECT FILES: Processing directory ===', { 
+      current,
+      entries: entries.length,
+      step: 'COLLECT_PROCESS_DIR'
+    });
+    for (const entry of entries) {
