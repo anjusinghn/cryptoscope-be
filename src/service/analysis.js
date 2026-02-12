@@ -36,3 +36,22 @@ function buildBasicAnalysis(file) {
     functions.push({ name, line_start: finding.line || null, content: snippet, type: finding.category });
     algorithms.push({
       ruleId: finding.ruleId,
+      category: finding.category,
+      severity: finding.severity,
+      description: finding.description,
+      recommendation: finding.recommendation,
+    });
+  });
+
+  analysis.crypto_imports = uniqueList(Array.from(imports));
+  analysis.crypto_functions = functions;
+  analysis.crypto_patterns_found = Array.from(patterns);
+  analysis.crypto_algorithms_detected = algorithms;
+  analysis.code_snippets = snippets;
+  analysis.has_crypto = analysis.crypto_patterns_found.length > 0 || analysis.crypto_functions.length > 0;
+
+  return analysis;
+}
+
+function buildAnalysisResult(scan) {
+  const files = Array.isArray(scan.files) ? scan.files : [];
