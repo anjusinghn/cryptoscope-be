@@ -30,3 +30,19 @@ const corsOptions = {
     }
     const allowed = ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin);
     log.info('cors origin check', { origin, allowed, allowedOrigins: ALLOWED_ORIGINS });
+    if (allowed) return callback(null, true);
+    // Do not error out. Let route handlers decide their own CORS headers (e.g., SSE sets its own).
+    return callback(null, false);
+  },
+  optionsSuccessStatus: 204,
+};
+
+module.exports = {
+  PORT,
+  MAX_SCAN_FILES,
+  DEFAULT_CONCURRENCY,
+  ALLOWED_ORIGINS,
+  INDEXING_DISABLED,
+  cors,
+  corsOptions,
+};
