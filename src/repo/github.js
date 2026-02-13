@@ -41,3 +41,24 @@ function parseGithubUrl(url) {
         subpath = parts.slice(4).join('/');
       }
     }
+    if (!owner || !repo) throw new Error('Invalid GitHub URL');
+    const parsed = { owner, repo, ref, subpath };
+    log.debug('parseGithubUrl', { url: raw, parsed });
+    return parsed;
+  } catch (e) {
+    throw new Error('Invalid GitHub URL');
+  }
+}
+
+function run(cmd, args, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    log.info('spawn start', { cmd, args });
+    const p = spawn(cmd, args, { ...opts });
+    let out = '', err = '';
+    p.stdout && p.stdout.on('data', (d) => {
+      const msg = d.toString();
+      out += msg;
+      log.info('spawn stdout', { cmd, msg });
+    });
+    p.stderr && p.stderr.on('data', (d) => {
