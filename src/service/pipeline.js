@@ -40,3 +40,24 @@ async function scanWorkspace({
   }
 
   log.info('=== STEP 1: DETECT - Starting Semgrep analysis ===', { 
+    versionId, 
+    total, 
+    sourceType, 
+    sourceLocator, 
+    meta,
+    step: 'DETECT_START'
+  });
+  
+  // Log file types being scanned
+  const fileTypes = files.map(f => {
+    const ext = f.path.split('.').pop()?.toLowerCase();
+    return ext;
+  }).filter(Boolean);
+  const typeCounts = fileTypes.reduce((acc, type) => {
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+  
+  log.info('File types to scan', { versionId, typeCounts, total });
+  
+  if (onProgress) await onProgress({ done: 0, total });
