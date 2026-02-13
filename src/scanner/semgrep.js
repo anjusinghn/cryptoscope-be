@@ -44,3 +44,25 @@ function transformSemgrep(json, filename, language, code) {
     const column = r?.start?.col || r?.extra?.start?.col || 1;
     const msg = r?.extra?.message || '';
     const sev = mapSeverity(r?.extra?.severity || r?.severity);
+    const meta = r?.extra?.metadata || {};
+    const category = meta.category || 'rule';
+    const recommendation = meta.recommendation || undefined;
+    const lines = (r?.extra?.lines || '').trim();
+    const match = lines ? (lines.split('\n')[0].slice(0, 200)) : (msg || r?.check_id || 'match');
+    out.push({
+      line,
+      column,
+      match,
+      ruleId: r?.check_id || 'semgrep.rule',
+      category,
+      severity: sev,
+      description: msg || r?.check_id || 'Semgrep finding',
+      recommendation,
+    });
+  }
+  const summary = summarize(out);
+  return {
+    filename,
+    language,
+    summary,
+    findings: out,
