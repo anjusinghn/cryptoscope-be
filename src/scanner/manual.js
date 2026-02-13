@@ -38,3 +38,23 @@ function patternsFor(lang) {
     P.push(
       { id: 'manual.java.hash.md5', re: /\bMessageDigest\.getInstance\(\s*['\"]MD5['\"]\s*\)/, category: 'hash', severity: 'high', msg: 'MD5 detected' },
       { id: 'manual.java.hash.sha1', re: /\bMessageDigest\.getInstance\(\s*['\"]SHA-?1['\"]\s*\)/i, category: 'hash', severity: 'high', msg: 'SHA-1 detected' },
+      { id: 'manual.java.hash.sha2', re: /\bMessageDigest\.getInstance\(\s*['\"]SHA-?(?:224|256|384|512)['\"]\s*\)/i, category: 'hash', severity: 'info', msg: 'SHA-2 usage' },
+      { id: 'manual.java.mac.sha1', re: /\bMac\.getInstance\(\s*['\"]HmacSHA?1['\"]\s*\)/i, category: 'mac', severity: 'high', msg: 'HMAC-SHA1 detected' },
+      { id: 'manual.java.cipher.any', re: /\bCipher\.getInstance\s*\(/, category: 'cipher', severity: 'info', msg: 'Cipher.getInstance usage' },
+      { id: 'manual.java.mode.ecb', re: /\bCipher\.getInstance\(\s*['\"]AES\/ECB\//i, category: 'mode', severity: 'high', msg: 'AES-ECB detected' },
+      { id: 'manual.java.mode.cbc', re: /\bCipher\.getInstance\(\s*['\"]AES\/CBC\//i, category: 'mode', severity: 'warning', msg: 'AES-CBC detected' },
+      { id: 'manual.java.mode.gcm', re: /\bCipher\.getInstance\(\s*['\"]AES\/GCM\//i, category: 'mode', severity: 'info', msg: 'AES-GCM usage' },
+      { id: 'manual.java.mode.unspecified', re: /\bCipher\.getInstance\(\s*['\"]AES['\"]\s*\)/, category: 'mode', severity: 'warning', msg: 'AES without explicit mode (likely ECB)' },
+      { id: 'manual.java.iv.zero', re: /new\s+IvParameterSpec\(\s*new\s+byte\s*\[/, category: 'mode', severity: 'high', msg: 'Zero-initialized IV detected' },
+      { id: 'manual.java.random.insecure', re: /\bnew\s+java?\.util\.Random\s*\(/, category: 'random', severity: 'high', msg: 'java.util.Random (not CSPRNG)' },
+      { id: 'manual.java.securerandom', re: /\bnew\s+java?\.security\.SecureRandom\s*\(/, category: 'random', severity: 'info', msg: 'SecureRandom usage' },
+      { id: 'manual.java.kdf.pbkdf2.sha1', re: /\bSecretKeyFactory\.getInstance\(\s*['\"]PBKDF2WithHmacSHA1['\"]\s*\)/, category: 'kdf', severity: 'warning', msg: 'PBKDF2-HmacSHA1 detected' },
+      { id: 'manual.java.kdf.pbkdf2.sha256', re: /\bSecretKeyFactory\.getInstance\(\s*['\"]PBKDF2WithHmacSHA256['\"]\s*\)/, category: 'kdf', severity: 'info', msg: 'PBKDF2-HmacSHA256 usage' },
+      { id: 'manual.java.kdf.iter.low', re: /\bnew\s+PBEKeySpec\s*\([^,]+,[^,]+,\s*(\d{1,6})\s*,/m, category: 'kdf', severity: 'warning', msg: 'PBKDF2 iterations may be low' },
+    );
+  }
+  if (lang === 'c' || lang === 'cpp') {
+    P.push(
+      { id: 'manual.c.openssl.md5', re: /\bEVP_md5\s*\(/, category: 'hash', severity: 'high', msg: 'OpenSSL MD5 detected' },
+      { id: 'manual.c.openssl.sha1', re: /\bEVP_sha1\s*\(/, category: 'hash', severity: 'high', msg: 'OpenSSL SHA1 detected' },
+      { id: 'manual.c.aes.ecb', re: /\bAES_[A-Za-z0-9_]*ecb[A-Za-z0-9_]*\s*\(/i, category: 'mode', severity: 'high', msg: 'AES-ECB detected' },

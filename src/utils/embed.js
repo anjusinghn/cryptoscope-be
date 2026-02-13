@@ -42,3 +42,25 @@ function detectLocalQuantized(localDir) {
   const altQ = path.join(localDir, 'onnx', 'model_qint8_avx512_vnni.onnx');
   if (fs.existsSync(altQ) && !isLfsPointer(altQ)) return true;
   return false;
+}
+
+function detectLocalOnnx(localDir) {
+  const p = path.join(localDir, 'onnx', 'model.onnx');
+  if (fs.existsSync(p) && !isLfsPointer(p)) return true;
+  // Accept common alternative fp32 filename
+  const alt = path.join(localDir, 'onnx', 'model_O4.onnx');
+  if (fs.existsSync(alt) && !isLfsPointer(alt)) return true;
+  // Some repos place the ONNX at the root
+  const rootP = path.join(localDir, 'model.onnx');
+  if (fs.existsSync(rootP) && !isLfsPointer(rootP)) return true;
+  return false;
+}
+
+function ensureExpectedOnnxFilename(localDir, quantized) {
+  const onnxDir = path.join(localDir, 'onnx');
+  const expected = path.join(onnxDir, quantized ? 'model_quantized.onnx' : 'model.onnx');
+  try {
+    if (fs.existsSync(expected) && !isLfsPointer(expected)) return expected;
+  } catch {}
+  const candidates = [
+    quantized
