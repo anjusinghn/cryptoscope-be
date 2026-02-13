@@ -38,3 +38,23 @@ function chunkJsOrTs(source, filename) {
       case 'FunctionDeclaration':
         pushNode(node, node.id?.name ? `function ${node.id.name}` : 'function');
         break;
+      case 'ClassDeclaration':
+        pushNode(node, node.id?.name ? `class ${node.id.name}` : 'class');
+        break;
+      case 'VariableDeclaration':
+        for (const decl of node.declarations || []) {
+          const init = decl?.init;
+          if (!init) continue;
+          if (['FunctionExpression', 'ArrowFunctionExpression'].includes(init.type) && init.loc) {
+            pushNode(init, decl.id?.name ? `function ${decl.id.name}` : 'function');
+          }
+        }
+        break;
+      case 'ExportNamedDeclaration':
+      case 'ExportDefaultDeclaration':
+        if (node.declaration) {
+          const decl = node.declaration;
+          if (decl.type === 'FunctionDeclaration') pushNode(decl, decl.id?.name ? `function ${decl.id.name}` : 'function');
+          else if (decl.type === 'ClassDeclaration') pushNode(decl, decl.id?.name ? `class ${decl.id.name}` : 'class');
+        }
+        break;
