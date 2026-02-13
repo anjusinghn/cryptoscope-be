@@ -44,3 +44,25 @@ router.post('/api/git-clone', async (req, res) => {
       if (cached) {
         log.info('Found cached scan, returning cached result', { versionId });
         const response = buildAnalysisResult(cached);
+        response.status = 'cached';
+        return res.json(response);
+      }
+      log.info('No cached scan found, proceeding with analysis', { versionId });
+    }
+
+    log.info('=== COLLECTING FILES FROM WORKSPACE ===', { 
+      scanRoot, 
+      versionId,
+      step: 'COLLECT_FILES_START'
+    });
+    
+    const files = await collectWorkspaceFiles(scanRoot);
+    const rootName = path.basename(scanRoot);
+    
+    log.info('=== FILES COLLECTED ===', { 
+      scanRoot, 
+      versionId,
+      totalFiles: files.length,
+      fileTypes: files.reduce((acc, f) => {
+        const ext = f.path.split('.').pop()?.toLowerCase();
+        if (ext) acc[ext] = (acc[ext] || 0) + 1;
