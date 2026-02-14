@@ -36,3 +36,22 @@ temp
 
 # Semgrep local/cache + generated outputs
 .semgrep
+.semgrep_home
+semgrep-report.json
+semgrep-*.json
+
+# Models and ML caches (large)
+models
+transformers_cache
+huggingface
+hf_cache
+.huggingface
+.huggingface-cache
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.swp
+*~
