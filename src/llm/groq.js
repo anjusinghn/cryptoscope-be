@@ -43,3 +43,25 @@ function summarizeFindingForPrompt(f, index) {
 }
 
 /**
+ * Classify findings into low/medium/high using Groq via LangChain.
+ * Returns { items: [{index, severity, reason}], enriched: findingsWithRank, usedLLM: boolean }
+ */
+async function classifyFindingsWithGroq(findings) {
+  if (!Array.isArray(findings) || findings.length === 0) return { items: [], enriched: [], usedLLM: false };
+  if (!API_KEY) return fallbackRank(findings);
+
+  try {
+    const SAMPLE_MAX = Math.max(1, Math.min(200, parseInt(process.env.GROQ_CLASSIFY_MAX || '64', 10)));
+    const toClassify = findings.map((f, i) => summarizeFindingForPrompt(f, i));
+    const sliced = toClassify.slice(0, SAMPLE_MAX);
+
+    const ItemSchema = z.object({
+      index: z.number(),
+      severity: z.enum(['low', 'medium', 'high']),
+      reason: z.string().min(1),
+    });
+    const OutputSchema = z.object({ items: z.array(ItemSchema) });
+
+    const model = await getChatGroq();
+    const runnable = model.withStructuredOutput(OutputSchema);
+
