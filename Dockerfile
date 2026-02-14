@@ -24,3 +24,16 @@ COPY . .
 RUN mkdir -p /var/data/cryptoscope /var/data/lancedb \
   && chown -R node:node /var/data \
   && chown -R node:node /app
+
+# Sensible defaults for small instances; override in Render as needed
+ENV CRYPTOSCOPE_DATA_DIR=/var/data/cryptoscope \
+    LANCEDB_DIR=/var/data/lancedb \
+    SCANNER=manual \
+    DISABLE_INDEXING=1 \
+    SCAN_CONCURRENCY=1
+
+EXPOSE 5050
+
+USER node
+
+CMD ["npm", "start"]
