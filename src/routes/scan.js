@@ -31,3 +31,20 @@ router.post('/api/scan', async (req, res) => {
     } catch (err) {
       log.warn('single-file enrichment failed', { error: String(err?.message || err) });
     }
+    return res.json({
+      filename: artifact.path,
+      language: artifact.language,
+      summary: artifact.summary,
+      findings: artifact.findings,
+      lines: result.lines || String(code).split(/\r?\n/).length,
+      truncated: result.truncated,
+      generatedAt: new Date().toISOString(),
+      chunks: artifact.chunks.map((c) => ({ index: c.index, label: c.label, startLine: c.startLine, endLine: c.endLine })),
+      content: artifact.content,
+    });
+  } catch (err) {
+    log.error('api/scan error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Internal error during scan.' });
+  }
+});
+
