@@ -42,3 +42,25 @@ app.use(llmRouter);
 app.use(scanRouter);
 app.use(analyzeRouter);
 app.use(repoRouter);
+app.use(filesRouter);
+app.use(uploadRouter);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: Number(process.env.ZIP_MAX_BYTES || 80 * 1024 * 1024),
+  },
+});
+
+initDb().catch((err) => {
+  log.error('database initialization error', { error: String(err?.message || err) });
+});
+
+const HEALTH_PAYLOAD = Object.freeze({ ok: true, service: 'cryptoscope-be', version: '0.2.0' });
+
+const SUPPORTED_EXT = new Set([
+  '.js', '.mjs', '.cjs', '.ts', '.tsx', '.c', '.cc', '.cpp', '.hpp', '.h', '.java', '.py', '.rb', '.go', '.rs', '.swift', '.cs', '.php', '.kt', '.scala', '.m', '.mm', '.sol', '.rs', '.rb', '.pl', '.sh', '.lua', '.json', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.txt', '.md', '.lock', '.gradle', '.pom', '.xml', '.groovy', '.coffee', '.dart'
+]);
+
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'build', 'dist', 'out', 'target', '.next', '.turbo', '.cache']);
+

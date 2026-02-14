@@ -40,3 +40,24 @@ router.post('/api/upload-zip', upload.single('file'), async (req, res) => {
       const cached = await getCachedScan(cacheKey);
       if (cached) {
         const response = buildAnalysisResult(cached);
+        response.status = 'cached';
+        return res.json(response);
+      }
+    }
+
+    const files = await collectWorkspaceFiles(extractDir);
+    if (!files.length) {
+      return res.json({
+        status: 'ok',
+        total_files: 0,
+        crypto_files_found: 0,
+        message: 'Archive uploaded but no supported source files were found.',
+        basic_analysis: [],
+        detailed_reviews: [],
+      });
+    }
+
+    const scan = await runWorkspaceScan({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId: cacheKey,
+      sourceType: 'zip',
