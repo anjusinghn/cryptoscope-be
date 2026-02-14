@@ -44,3 +44,26 @@ rules:
           - pattern: createCipheriv($ALGO, ...)
           - pattern: crypto.createDecipheriv($ALGO, ...)
           - pattern: createDecipheriv($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*cbc[^\"']*[\"']$"
+
+  - id: cryptoscope.node.aes.cbc.zeroiv.bufferalloc
+    languages: [javascript, typescript]
+    message: AES-CBC with a zero IV detected (Buffer.alloc(...)).
+    severity: ERROR
+    metadata:
+      category: mode
+      recommendation: Use a random IV and an AEAD mode like AES-GCM.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, $KEY, Buffer.alloc($N))
+          - pattern: createCipheriv($ALGO, $KEY, Buffer.alloc($N))
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*cbc[^\"']*[\"']$"
+
+  - id: cryptoscope.node.aes.cbc.zeroiv.bufferalloc_explicit_zero
+    languages: [javascript, typescript]
+    message: AES-CBC with a zero IV detected (Buffer.alloc(..., 0)).
+    severity: ERROR
