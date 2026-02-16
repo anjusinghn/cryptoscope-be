@@ -50,3 +50,20 @@ Thumbs.db
 *.swp
 *~
 
+# Semgrep local caches
+.semgrep/
+.semgrep_home/
+
+# ML/model caches (if any)
+transformers_cache/
+huggingface/
+hf_cache/
+.huggingface/
+.huggingface-cache/
+
+# Local models (embedding weights - large)
+models/
+
+# Semgrep scan outputs (generated)
+semgrep-report.json
+semgrep-*.json
