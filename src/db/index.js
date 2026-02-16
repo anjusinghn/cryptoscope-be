@@ -41,3 +41,25 @@ function toVectorLiteral(values) {
 }
 
 function parseVectorLiteral(value) {
+  if (Array.isArray(value)) return value.map((v) => Number(v) || 0);
+  if (typeof value !== 'string') return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map((v) => Number(v) || 0) : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function dot(a, b) {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) sum += (a[i] || 0) * (b[i] || 0);
+  return sum;
+}
+
+function magnitude(vec) {
+  let sum = 0;
+  for (let i = 0; i < vec.length; i++) sum += (vec[i] || 0) ** 2;
+  return Math.sqrt(sum);
+}
+
