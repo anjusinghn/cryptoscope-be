@@ -38,3 +38,23 @@ async function buildFileArtifacts({ path, code, scanResult, skipIndexing }) {
       language,
       size: Buffer.byteLength(content, 'utf8'),
       summary,
+      findings,
+      chunks: [],
+      content,
+    };
+  }
+
+  log.info('=== INDEX: Chunking source code ===', { 
+    path, 
+    language, 
+    content_length: content.length,
+    step: 'INDEX_CHUNK_START'
+  });
+  
+  const chunks = chunkSource({ code: content, language, filename: path });
+  
+  log.info('=== INDEX: Chunks created, generating embeddings ===', { 
+    path, 
+    chunks: chunks.length,
+    step: 'INDEX_EMBED_START'
+  });
