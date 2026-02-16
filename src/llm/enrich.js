@@ -41,3 +41,25 @@ function heuristicEnrichment(finding) {
   else if (/aes[-\s]?192|192/.test(match)) out.key_size = '192';
   else if (/aes[-\s]?128|128/.test(match)) out.key_size = '128';
 
+  if (/iv/.test(desc) || /iv/.test(match)) {
+    if (/buffer\.alloc\s*\(\s*0?\s*\)/.test(match) || /new\s+(?:byte|uint8array)\s*\(/.test(match)) {
+      out.iv_usage = 'static-zero';
+    } else {
+      out.iv_usage = 'present';
+    }
+  }
+
+  if (/salt/.test(desc) || /salt/.test(match)) out.salt_usage = 'present';
+
+  return out;
+}
+
+async function getGroqModel() {
+  if (!process.env.GROQ_API_KEY) return null;
+  try {
+    const { ChatGroq } = await import('@langchain/groq');
+    return new ChatGroq({
+      apiKey: process.env.GROQ_API_KEY,
+      model: process.env.GROQ_ENRICH_MODEL || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      temperature: 0,
+    });
