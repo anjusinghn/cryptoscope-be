@@ -28,3 +28,18 @@ router.post('/api/explain-finding', async (req, res) => {
       ruleId: f.ruleId,
       category: f.category,
       severity: f.severity,
+      description: f.description,
+      recommendation: f.recommendation,
+      line: f.line,
+      column: f.column,
+      snippet: typeof snippet === 'string' ? snippet : (typeof f.match === 'string' ? f.match : ''),
+    };
+    // Use report generator to craft a concise explanation (cheap reuse)
+    const content = await generateReportWithGroq([base], { versionId, filePath, single: true });
+    return res.json({ ok: true, explanation: content });
+  } catch (err) {
+    log.warn('api/explain-finding error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to explain finding' });
+  }
+});
+
