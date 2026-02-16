@@ -66,3 +66,26 @@ rules:
           - pattern: javax.crypto.Mac.getInstance($ALGO, ...)
       - metavariable-regex:
           metavariable: ALGO
+          regex: "(?i)^[\"']?hmacsha-?1[\"']?$"
+
+  - id: cryptoscope.java.signature.md5
+    languages: [java]
+    message: Signature with MD5 digest detected (vulnerable to collisions).
+    severity: ERROR
+    metadata:
+      category: signature
+      recommendation: Use SHA-256/384+ or EdDSA for digital signatures.
+    patterns:
+      - pattern-either:
+          - pattern: Signature.getInstance($ALGO)
+          - pattern: java.security.Signature.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?MD5with(?:RSA|DSA|ECDSA)[\"']?$"
+
+  - id: cryptoscope.java.signature.sha1
+    languages: [java]
+    message: Signature with SHA-1 digest detected (collision-prone).
+    severity: WARNING
+    metadata:
+      category: signature
