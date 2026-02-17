@@ -65,3 +65,25 @@ router.post('/api/analyze', async (req, res) => {
 });
 
 // SSE endpoint for local directory scanning with real-time progress
+router.options('/api/analyze-sse', cors(corsOptions));
+router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
+  const targetPath = String(req.query.path || '').trim();
+  const concurrency = parseInt(String(req.query.concurrency || ''), 10);
+
+  if (!targetPath) {
+    res.status(400).json({ error: 'Missing `path` query parameter.' });
+    return;
+  }
+
+  const absPath = path.resolve(targetPath);
+  const stat = await safeStat(absPath);
+  if (!stat) {
+    res.status(404).json({ error: 'Path not found.' });
+    return;
+  }
+  if (!stat.isDirectory()) {
+    res.status(400).json({ error: 'Path must be a directory.' });
+    return;
+  }
+
+  res.status(200);
