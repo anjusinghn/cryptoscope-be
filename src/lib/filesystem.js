@@ -55,3 +55,22 @@ async function collectWorkspaceFiles(root) {
       step: 'COLLECT_PROCESS_DIR'
     });
     for (const entry of entries) {
+      if (entry.name.startsWith('.git') && entry.isDirectory()) continue;
+      const abs = path.join(current, entry.name);
+      const rel = posixPath(path.relative(root, abs));
+      if (visited.has(abs)) continue;
+      visited.add(abs);
+      if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name)) continue;
+        queue.push(abs);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!SUPPORTED_EXT.has(ext)) continue;
+      const canonicalRel = rel || entry.name;
+      results.push({
+        path: canonicalRel,
+        absolutePath: abs,
+        content: async () => {
+          const data = await fs.promises.readFile(abs, 'utf8');
