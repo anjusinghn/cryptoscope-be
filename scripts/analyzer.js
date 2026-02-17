@@ -57,3 +57,22 @@ async function scanFile(p) {
       const ranked = await rankRes.json();
       console.log(`\nRanked severities received (${Array.isArray(ranked?.enriched) ? ranked.enriched.length : 0})`);
     }
+    const repRes = await apiFetch('/api/generate-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ findings: result.findings, meta: { source: 'cli', filename: p, language: result.language } }) });
+    if (repRes.ok) {
+      const data = await repRes.json();
+      console.log('\n=== Report (Markdown) ===\n');
+      console.log(String(data?.report || ''));
+    }
+  }
+}
+
+async function scanRepo(url) {
+  console.log(`Starting repo scan: ${url}`);
+  const sseUrl = new URL('/api/scan-repo-sse', API);
+  sseUrl.searchParams.set('url', url);
+  sseUrl.searchParams.set('concurrency', '4');
+  const isHttps = sseUrl.protocol === 'https:';
+  const mod = isHttps ? https : http;
+  const req = mod.request(sseUrl, { headers: { Accept: 'text/event-stream' } }, (res) => {
+    res.setEncoding('utf8');
+    let buf = '';
