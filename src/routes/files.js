@@ -61,3 +61,24 @@ router.get('/api/repo-file', async (req, res) => {
     log.error('api/repo-file error', { error: String(err?.message || err) });
     return res.status(500).json({ error: 'Failed to read file' });
   }
+});
+
+// Return primitives and context for a scanned file
+router.get('/api/file-primitives', async (req, res) => {
+  try {
+    const versionId = String(req.query.versionId || req.query.version_id || '').trim();
+    const rel = String(req.query.path || '').trim();
+    if (!versionId || !rel) return res.status(400).json({ error: 'Missing versionId or path' });
+    const scan = await loadScanResult(versionId);
+    if (!scan) return res.status(404).json({ error: 'Scan not found' });
+    const file = (scan.files || []).find((f) => (
+      f.path === rel ||
+      rel.endsWith(f.path) ||
+      rel.endsWith('/' + f.path) ||
+      rel.endsWith('\\' + f.path)
+    ));
+    if (!file) return res.status(404).json({ error: 'File not found in scan' });
+
+    const outputs = [];
+    for (const f of (file.findings || [])) {
+      const finding = {
