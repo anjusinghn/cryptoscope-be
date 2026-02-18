@@ -61,3 +61,24 @@ async function scanWorkspace({
   log.info('File types to scan', { versionId, typeCounts, total });
   
   if (onProgress) await onProgress({ done: 0, total });
+
+  await new Promise((resolve, reject) => {
+    let idx = 0;
+    let active = 0;
+    const next = () => {
+      if (signal?.aborted) return reject(new Error('aborted'));
+      if (completed >= total && active === 0) return resolve();
+      while (active < concurrency && idx < total) {
+        const file = files[idx++];
+        active += 1;
+        (async () => {
+          try {
+            const content = typeof file.content === 'function' ? await file.content() : file.content;
+            log.info('=== DETECT: Scanning file ===', { 
+              versionId, 
+              path: file.path, 
+              size: content?.length || 0,
+              step: 'DETECT_FILE_START'
+            });
+            
+            const scan = await scanCodeAsync(content, file.path);
