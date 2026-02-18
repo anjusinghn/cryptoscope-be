@@ -62,3 +62,25 @@ function run(cmd, args, opts = {}) {
       log.info('spawn stdout', { cmd, msg });
     });
     p.stderr && p.stderr.on('data', (d) => {
+      const msg = d.toString();
+      err += msg;
+      log.warn('spawn stderr', { cmd, msg });
+    });
+    p.on('close', (code) => {
+      const dur = Date.now() - t0;
+      log.info('spawn done', { cmd, code, duration_ms: dur, stdout_len: out.length, stderr_len: err.length });
+      if (code === 0) resolve({ code, stdout: out, stderr: err });
+      else reject(new Error(err || (`${cmd} exited ${code}`)));
+    });
+  });
+}
+
+async function cloneGithub(url) {
+  const { owner, repo, ref, subpath } = parseGithubUrl(url);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cryptoscope-repo-'));
+  const root = path.join(tmp, repo);
+  const cloneUrl = `https://github.com/${owner}/${repo}.git`;
+  const args = ['clone', '--depth', '1'];
+  if (ref) { args.push('--branch', ref); }
+  args.push(cloneUrl, root);
+  log.info('git clone starting', { owner, repo, ref: ref || null, subpath });
