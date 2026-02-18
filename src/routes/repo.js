@@ -66,3 +66,26 @@ router.post('/api/git-clone', async (req, res) => {
       fileTypes: files.reduce((acc, f) => {
         const ext = f.path.split('.').pop()?.toLowerCase();
         if (ext) acc[ext] = (acc[ext] || 0) + 1;
+        return acc;
+      }, {}),
+      step: 'COLLECT_FILES_COMPLETE'
+    });
+
+    if (!files.length) {
+      log.warn('=== NO FILES FOUND - Analysis complete ===', { 
+        scanRoot, 
+        versionId,
+        step: 'NO_FILES_FOUND'
+      });
+      return res.json({
+        status: 'ok',
+        total_files: 0,
+        crypto_files_found: 0,
+        message: 'Repository cloned but no supported source files were found.',
+        basic_analysis: [],
+        detailed_reviews: [],
+        repo: { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName },
+      });
+    }
+
+    log.info('=== STARTING WORKSPACE SCAN ===', { 

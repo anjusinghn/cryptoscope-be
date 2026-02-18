@@ -46,3 +46,19 @@ function buildRepoPayload({ scan, repoMeta, root, cached }) {
       ref: repoMeta?.ref || null,
       subpath: repoMeta?.subpath || null,
       commit: repoMeta?.commit || null,
+      versionId: repoMeta?.versionId || scan.versionId || null,
+    },
+    root,
+    files,
+    filesScanned: files.length,
+    summary,
+    generatedAt: scan.version?.updated_at || new Date().toISOString(),
+    cached: Boolean(cached),
+  };
+}
+
+module.exports = {
+  sanitizeFinding,
+  sanitizeFile,
+  buildRepoPayload,
+};
