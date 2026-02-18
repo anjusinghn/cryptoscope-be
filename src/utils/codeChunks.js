@@ -58,3 +58,22 @@ function chunkJsOrTs(source, filename) {
           else if (decl.type === 'ClassDeclaration') pushNode(decl, decl.id?.name ? `class ${decl.id.name}` : 'class');
         }
         break;
+      default:
+        break;
+    }
+  }
+  return out;
+}
+
+function findClosingBrace(source, startIndex) {
+  let depth = 0;
+  for (let i = startIndex; i < source.length; i++) {
+    const ch = source[i];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
