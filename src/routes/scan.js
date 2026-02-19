@@ -48,3 +48,19 @@ router.post('/api/scan', async (req, res) => {
   }
 });
 
+module.exports = router;
+
+// Expose saved scan result for a given versionId
+router.get('/api/scan-result', async (req, res) => {
+  try {
+    const versionId = String(req.query.versionId || req.query.version_id || '').trim();
+    if (!versionId) return res.status(400).json({ error: 'Missing versionId' });
+    const scan = await loadScanResult(versionId);
+    if (!scan) return res.status(404).json({ error: 'Scan not found' });
+    const files = Array.isArray(scan.files) ? scan.files.map(sanitizeFile) : [];
+    return res.json({ versionId, files, summary: scan.summary || {} });
+  } catch (err) {
+    log.error('api/scan-result error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to load scan result' });
+  }
+});
