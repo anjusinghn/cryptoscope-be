@@ -66,3 +66,26 @@ function transformSemgrep(json, filename, language, code) {
     language,
     summary,
     findings: out,
+    lines: String(code).split(/\r?\n/).length,
+    truncated: String(code).length > MAX_CHARS,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+let PY_SITE_PACKAGES = null;
+
+function resolvePythonSitePackages() {
+  if (PY_SITE_PACKAGES) return PY_SITE_PACKAGES;
+  const pythonCandidates = [process.env.PYTHON || 'python3', 'python'];
+  for (const py of pythonCandidates) {
+    try {
+      const out = spawnSync(py, ['-c', 'import sysconfig, site, json; paths = [sysconfig.get_paths()["purelib"], getattr(site, "getusersitepackages", lambda: "")()]; print("\n".join([p for p in paths if p]))'], { encoding: 'utf8' });
+      if (out && out.status === 0 && typeof out.stdout === 'string') {
+        const lines = out.stdout.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (lines.length) {
+          PY_SITE_PACKAGES = lines;
+          return PY_SITE_PACKAGES;
+        }
+      }
+    } catch (err) {
+      // ignore and continue to next candidate
