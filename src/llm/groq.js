@@ -65,3 +65,26 @@ async function classifyFindingsWithGroq(findings) {
     const model = await getChatGroq();
     const runnable = model.withStructuredOutput(OutputSchema);
 
+    const system = `You are a security triage assistant. Classify crypto/security findings into severities: low, medium, or high.
+Rules for severity:
+- high: clear and impactful security risk, insecure algorithms (e.g., MD5/SHA-1), broken modes (ECB), zero IVs, missing auth in AEAD, hardcoded secrets, tiny PBKDF2 iterations, etc.
+- medium: potentially risky or context-dependent issues, weak parameters, deprecated usage without immediate exploit.
+- low: informational or best-practice recommendations with low direct risk.
+Respond with a JSON object that matches the provided schema strictly.`;
+
+    const user = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `Classify the following findings. Keep indexes aligned.
+Return: { "items": Array<{ index, severity, reason }> }
+Findings JSON:`,
+          },
+          { type: 'text', text: JSON.stringify(sliced) },
+        ],
+      },
+    ];
+
+    const result = await runnable.invoke([
