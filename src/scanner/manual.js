@@ -58,3 +58,23 @@ function patternsFor(lang) {
       { id: 'manual.c.openssl.md5', re: /\bEVP_md5\s*\(/, category: 'hash', severity: 'high', msg: 'OpenSSL MD5 detected' },
       { id: 'manual.c.openssl.sha1', re: /\bEVP_sha1\s*\(/, category: 'hash', severity: 'high', msg: 'OpenSSL SHA1 detected' },
       { id: 'manual.c.aes.ecb', re: /\bAES_[A-Za-z0-9_]*ecb[A-Za-z0-9_]*\s*\(/i, category: 'mode', severity: 'high', msg: 'AES-ECB detected' },
+      { id: 'manual.c.aes.ecb2', re: /\bEVP_aes_\d+_ecb\b/i, category: 'mode', severity: 'high', msg: 'AES-ECB detected' },
+    );
+  }
+  return P;
+}
+
+function scanManual(code, filename = 'snippet') {
+  const truncated = String(code).length > MAX_CHARS ? String(code).slice(0, MAX_CHARS) : String(code);
+  const language = detectLanguage(filename, truncated);
+  const pats = patternsFor(language);
+  const findings = [];
+  const lines = String(truncated).split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    for (const p of pats) {
+      const m = p.re.exec(line);
+      if (m) {
+        findings.push({
+          line: i + 1,
+          column: (m.index || 0) + 1,

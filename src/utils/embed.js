@@ -64,3 +64,25 @@ function ensureExpectedOnnxFilename(localDir, quantized) {
   } catch {}
   const candidates = [
     quantized
+      ? path.join(onnxDir, 'model_qint8_avx512_vnni.onnx')
+      : path.join(onnxDir, 'model_O4.onnx'),
+    path.join(localDir, 'model.onnx'),
+  ];
+  for (const cand of candidates) {
+    try {
+      if (fs.existsSync(cand) && !isLfsPointer(cand)) {
+        fs.mkdirSync(onnxDir, { recursive: true });
+        if (!fs.existsSync(expected)) {
+          fs.symlinkSync(cand, expected);
+          log.info('created ONNX symlink for transformers', { from: cand, to: expected });
+        }
+        return expected;
+      }
+    } catch (e) {
+      log.warn('ensureExpectedOnnxFilename error', { error: String(e?.message || e) });
+    }
+  }
+  return null;
+}
+
+async function loadTransformersEmbedder() {
