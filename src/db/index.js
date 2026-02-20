@@ -63,3 +63,24 @@ function magnitude(vec) {
   return Math.sqrt(sum);
 }
 
+function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return -1;
+  const magA = magnitude(a);
+  const magB = magnitude(b);
+  if (magA === 0 || magB === 0) return -1;
+  return dot(a, b) / (magA * magB);
+}
+
+function makeFileId(versionId, filePath) {
+  return `${versionId}::${encodeURIComponent(filePath)}`;
+}
+
+function makeChunkId(fileId, index) {
+  return `${fileId}::chunk::${index}`;
+}
+
+function makeFindingId(fileId, index) {
+  return `${fileId}::finding::${index}`;
+}
+
+async function readScanPayload(versionId) {
