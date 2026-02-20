@@ -63,3 +63,24 @@ async function getGroqModel() {
       model: process.env.GROQ_ENRICH_MODEL || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
       temperature: 0,
     });
+  } catch (err) {
+    log.warn('failed to init Groq enrich model', { error: String(err?.message || err) });
+    return null;
+  }
+}
+
+function buildPromptItem(finding, context) {
+  return {
+    ruleId: finding.ruleId,
+    category: finding.category,
+    severity: finding.severity,
+    description: finding.description,
+    match: finding.match,
+    path: finding.path,
+    context,
+  };
+}
+
+function dedupeChunks(primary, related) {
+  const seen = new Set();
+  const out = [];
