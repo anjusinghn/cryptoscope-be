@@ -61,3 +61,23 @@ router.post('/api/upload-zip', upload.single('file'), async (req, res) => {
       files: files.map((file) => ({ path: file.path, content: file.content })),
       versionId: cacheKey,
       sourceType: 'zip',
+      sourceLocator: `zip:${hash.slice(0, 8)}`,
+      meta: { zipHash: hash },
+      concurrency: req.body?.concurrency,
+    });
+
+    enrichFindingsForVersion(cacheKey).catch((err) => {
+      log.warn('enrich (zip) failed', { error: String(err?.message || err) });
+    });
+
+    const response = buildAnalysisResult(scan);
+    response.versionId = cacheKey;
+    return res.json(response);
+  } catch (err) {
+    log.error('api/upload-zip error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to process archive.' });
+  } finally {
+    try {
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+    } catch {}
+  }
