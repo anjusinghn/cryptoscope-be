@@ -64,3 +64,25 @@ const SUPPORTED_EXT = new Set([
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'build', 'dist', 'out', 'target', '.next', '.turbo', '.cache']);
 
+// Helpers -------------------------------------------------------------
+function posixPath(p) {
+  return p.split(path.sep).join('/');
+}
+
+async function safeStat(p) {
+  try {
+    return await fs.promises.stat(p);
+  } catch (err) {
+    return null;
+  }
+}
+
+async function collectWorkspaceFiles(root) {
+  const queue = [root];
+  const results = [];
+  const visited = new Set();
+  const rootReal = await fs.promises.realpath(root).catch(() => root);
+  while (queue.length) {
+    const current = queue.pop();
+    let entries;
+    try {
