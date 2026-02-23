@@ -76,3 +76,23 @@ async function scanRepo(url) {
   const req = mod.request(sseUrl, { headers: { Accept: 'text/event-stream' } }, (res) => {
     res.setEncoding('utf8');
     let buf = '';
+    const files = [];
+    const findings = [];
+    let summary = { total: 0, byCategory: {}, bySeverity: {} };
+    res.on('data', (chunk) => {
+      buf += chunk;
+      const parts = buf.split(/\n\n/);
+      buf = parts.pop() || '';
+      for (const part of parts) {
+        const lines = part.split(/\n/);
+        const evLine = lines.find(l => l.startsWith('event: '));
+        const dataLine = lines.find(l => l.startsWith('data: '));
+        const ev = evLine ? evLine.slice(7).trim() : 'message';
+        const data = dataLine ? JSON.parse(dataLine.slice(6)) : null;
+        if (ev === 'start') {
+          console.log(`Files: ${data.total}`);
+        } else if (ev === 'file' && data && !data.error) {
+          files.push(data);
+          if (Array.isArray(data.findings)) findings.push(...data.findings.map(f => ({ ...f, path: data.path })));
+          console.log(`File: ${data.path}  findings: ${data.summary?.total || 0}`);
+        } else if (ev === 'progress') {
