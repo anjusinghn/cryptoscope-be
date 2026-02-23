@@ -89,3 +89,25 @@ router.post('/api/git-clone', async (req, res) => {
     }
 
     log.info('=== STARTING WORKSPACE SCAN ===', { 
+      versionId, 
+      totalFiles: files.length,
+      concurrency: concurrency || 'default',
+      step: 'WORKSPACE_SCAN_START'
+    });
+
+    const scan = await scanWorkspace({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId,
+      sourceType: 'github',
+      sourceLocator: target,
+      meta: { repo: { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref, subpath: parsed.subpath } },
+      concurrency,
+      skipIndexing: INDEXING_DISABLED,
+    });
+
+    log.info('=== WORKSPACE SCAN COMPLETE - Starting enrichment ===', { 
+      versionId, 
+      totalFindings: scan?.summary?.total || 0,
+      step: 'WORKSPACE_SCAN_COMPLETE'
+    });
+
