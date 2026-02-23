@@ -74,3 +74,22 @@ async function collectWorkspaceFiles(root) {
         absolutePath: abs,
         content: async () => {
           const data = await fs.promises.readFile(abs, 'utf8');
+          return data;
+        },
+      });
+      if (results.length >= MAX_SCAN_FILES) {
+        log.warn('collectWorkspaceFiles limit reached', { max: MAX_SCAN_FILES, root: rootReal });
+        return results;
+      }
+    }
+  }
+  
+  log.info('=== COLLECT FILES: Collection complete ===', { 
+    root,
+    totalFiles: results.length,
+    supportedExtensions: Array.from(SUPPORTED_EXT).slice(0, 10),
+    step: 'COLLECT_COMPLETE'
+  });
+  
+  return results;
+}
