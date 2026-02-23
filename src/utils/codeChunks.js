@@ -77,3 +77,23 @@ function findClosingBrace(source, startIndex) {
   }
   return -1;
 }
+
+function chunkByRegex(source, regex, labelPrefix = 'function') {
+  const out = [];
+  const lines = source.split(/\r?\n/);
+  let match;
+  while ((match = regex.exec(source)) !== null) {
+    const startIndex = match.index;
+    const braceIndex = source.indexOf('{', startIndex);
+    if (braceIndex === -1) continue;
+    const endIndex = findClosingBrace(source, braceIndex);
+    if (endIndex === -1) continue;
+    const startLine = source.slice(0, startIndex).split(/\r?\n/).length || 1;
+    const endLine = source.slice(0, endIndex).split(/\r?\n/).length + 1;
+    const rawName = match[1] || match[2] || match[0];
+    const name = String(rawName || '').trim().replace(/\s+/g, ' ');
+    const label = `${labelPrefix} ${name}`.trim();
+    out.push({ startLine, endLine, content: sliceLines(lines, startLine, endLine), label });
+  }
+  return out;
+}
