@@ -89,3 +89,25 @@ rules:
     severity: WARNING
     metadata:
       category: signature
+      recommendation: Prefer SHA-256/384+, SHA-3, or modern signature schemes like Ed25519.
+    patterns:
+      - pattern-either:
+          - pattern: Signature.getInstance($ALGO)
+          - pattern: java.security.Signature.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?SHA-?1with(?:RSA|DSA|ECDSA|RSAandMGF1)[\"']?$"
+
+  - id: cryptoscope.java.signature.none
+    languages: [java]
+    message: Signature without hashing detected (NONEwith*).
+    severity: ERROR
+    metadata:
+      category: signature
+      recommendation: Hash the message before signing (e.g., SHA-256 with RSA/ECDSA).
+    patterns:
+      - pattern-either:
+          - pattern: Signature.getInstance($ALGO)
+          - pattern: java.security.Signature.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
