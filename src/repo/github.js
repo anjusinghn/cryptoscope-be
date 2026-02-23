@@ -84,3 +84,24 @@ async function cloneGithub(url) {
   if (ref) { args.push('--branch', ref); }
   args.push(cloneUrl, root);
   log.info('git clone starting', { owner, repo, ref: ref || null, subpath });
+  await run('git', args, { env: process.env });
+  log.info('git clone completed', { owner, repo, ref: ref || null, subpath });
+  let commit = null;
+  try {
+    const rev = await run('git', ['-C', root, 'rev-parse', 'HEAD'], { env: process.env });
+    commit = rev.stdout.trim();
+  } catch (err) {
+    log.warn('git rev-parse failed', { owner, repo, error: String(err?.message || err) });
+  }
+  const id = path.basename(tmp);
+  const absScanRoot = subpath ? path.join(root, subpath) : root;
+  const versionId = commit || `${owner}/${repo}@${ref || 'HEAD'}`;
+  repoCache.set(id, { root, scanRoot: absScanRoot, url, owner, repo, ref: ref || null, subpath, commit, versionId, createdAt: Date.now() });
+  log.info('cloneGithub done', { id, root, scanRoot: absScanRoot, commit, versionId });
+  return { id, root, scanRoot: absScanRoot, versionId, meta: repoCache.get(id) };
+}
+
+function getRepoPath(id) {
+  const ent = repoCache.get(id);
+  if (!ent) return null;
+  return ent.root;

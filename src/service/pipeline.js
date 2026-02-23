@@ -82,3 +82,24 @@ async function scanWorkspace({
             });
             
             const scan = await scanCodeAsync(content, file.path);
+            log.info('=== DETECT: File scan complete ===', { 
+              versionId, 
+              path: file.path, 
+              findings: scan?.summary?.total || 0,
+              by_severity: scan?.summary?.bySeverity || {},
+              step: 'DETECT_FILE_COMPLETE'
+            });
+            
+            if (!indexingDisabled) {
+              log.info('=== INDEX: Building artifacts and embeddings ===', {
+                versionId,
+                path: file.path,
+                step: 'INDEX_START',
+              });
+            } else {
+              log.info('=== INDEX: Skipping artifact indexing ===', {
+                versionId,
+                path: file.path,
+                step: 'INDEX_SKIPPED',
+              });
+            }
