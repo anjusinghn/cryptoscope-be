@@ -58,3 +58,23 @@ async function buildFileArtifacts({ path, code, scanResult, skipIndexing }) {
     chunks: chunks.length,
     step: 'INDEX_EMBED_START'
   });
+  
+  const chunkTexts = chunks.map((c) => `passage: ${clampText(c.content, 1800)}`);
+  const embeddings = await embedTexts(chunkTexts);
+  
+  if (embeddings.length !== chunks.length) {
+    log.warn('embedding count mismatch', { path, chunks: chunks.length, embeddings: embeddings.length });
+  }
+  
+  log.info('=== INDEX: Embeddings generated, building artifacts ===', { 
+    path, 
+    chunks: chunks.length,
+    embeddings: embeddings.length,
+    step: 'INDEX_EMBED_COMPLETE'
+  });
+  
+  const enrichedChunks = chunks.map((chunk, idx) => ({
+    index: idx,
+    startLine: chunk.startLine,
+    endLine: chunk.endLine,
+    label: chunk.label,
