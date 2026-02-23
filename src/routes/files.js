@@ -82,3 +82,24 @@ router.get('/api/file-primitives', async (req, res) => {
     const outputs = [];
     for (const f of (file.findings || [])) {
       const finding = {
+        id: f.id,
+        line: f.line,
+        column: f.column,
+        ruleId: f.ruleId,
+        category: f.category,
+        severity: f.severity,
+        description: f.description,
+        recommendation: f.recommendation,
+      };
+      const query = `query: ${f.description || ''} ${f.match || ''}`.trim();
+      let matches = [];
+      if (query.length > 6) {
+        try {
+          const [vec] = await embedTexts([query]);
+          if (Array.isArray(vec) && vec.length) {
+            const rows = await searchChunksLance(versionId, vec, 4);
+            matches = (rows || []).map((row) => ({
+              id: row.id ?? `${row.filePath || ''}:${row.chunkIndex ?? 0}`,
+              filePath: row.filePath,
+              chunkIndex: row.chunkIndex,
+              startLine: row.startLine ?? 0,
