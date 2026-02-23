@@ -63,3 +63,24 @@ async function ensureTable() {
       }
     })();
   }
+  return tablePromise;
+}
+
+function normalizeEmbedding(vec) {
+  if (!Array.isArray(vec) || vec.length === 0) return null;
+  const arr = new Float32Array(vec.length);
+  for (let i = 0; i < vec.length; i++) {
+    const v = Number(vec[i]);
+    arr[i] = Number.isFinite(v) ? v : 0;
+  }
+  return Array.from(arr);
+}
+
+async function upsertChunks(versionId, chunks) {
+  if (!versionId || !Array.isArray(chunks) || chunks.length === 0) return;
+  const table = await ensureTable();
+  if (!table) return;
+  try {
+    await table.deleteWhere(`versionId = '${versionId.replace(/'/g, "''")}'`);
+  } catch (err) {
+    log.warn('lancedb deleteWhere failed', { versionId, error: err?.message });

@@ -43,3 +43,18 @@ router.post('/api/explain-finding', async (req, res) => {
   }
 });
 
+router.post('/api/generate-report', async (req, res) => {
+  try {
+    const { findings, meta } = req.body || {};
+    if (!Array.isArray(findings)) {
+      return res.status(400).json({ error: 'Body must include `findings` array.' });
+    }
+    const report = await generateReportWithGroq(findings, meta || {});
+    return res.json({ report });
+  } catch (err) {
+    log.error('api/generate-report error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to generate report.' });
+  }
+});
+
+module.exports = router;
