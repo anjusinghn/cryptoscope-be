@@ -86,3 +86,25 @@ function ensureExpectedOnnxFilename(localDir, quantized) {
 }
 
 async function loadTransformersEmbedder() {
+  if (embedderPromise) return embedderPromise;
+  embedderPromise = (async () => {
+    try {
+      const { pipeline, env } = await import('@xenova/transformers');
+      const localModel = resolveLocalModelPath();
+
+      let model;
+      let quantized;
+      if (localModel) {
+        const localRoot = path.dirname(localModel);
+        env.localModelPath = localRoot + path.sep;
+        env.allowRemoteModels = process.env.EMBEDDING_REMOTE === '1';
+        model = path.basename(localModel); 
+
+        if (process.env.EMBEDDING_QUANTIZED === 'true') quantized = true;
+        else if (process.env.EMBEDDING_QUANTIZED === 'false') quantized = false;
+        else quantized = detectLocalQuantized(localModel);
+
+        const ensured = ensureExpectedOnnxFilename(localModel, quantized);
+        if (!ensured) {
+          if (quantized) {
+            const qfile = path.join(localModel, 'onnx', 'model_quantized.onnx');
