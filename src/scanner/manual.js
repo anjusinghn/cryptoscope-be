@@ -78,3 +78,23 @@ function scanManual(code, filename = 'snippet') {
         findings.push({
           line: i + 1,
           column: (m.index || 0) + 1,
+          match: line.slice(m.index, m.index + Math.min(200, (m[0] || '').length)).trim(),
+          ruleId: p.id,
+          category: p.category,
+          severity: mapSeverity(p.severity),
+          description: p.msg,
+        });
+      }
+    }
+  }
+  // PBKDF2 iteration severity refinement for Java
+  if (language === 'java') {
+    const iters = [];
+    for (let i = 0; i < lines.length; i++) {
+      const m = /\bnew\s+PBEKeySpec\s*\([^,]+,[^,]+,\s*(\d{1,8})\s*,/.exec(lines[i]);
+      if (m) {
+        const N = parseInt(m[1], 10);
+        const sev = N < 10000 ? 'high' : (N < 100000 ? 'warning' : 'info');
+        findings.push({ line: i + 1, column: (m.index || 0) + 1, match: lines[i].trim().slice(0, 200), ruleId: 'manual.java.kdf.pbkdf2.iterations', category: 'kdf', severity: sev, description: `PBKDF2 iterations = ${N}` });
+      }
+    }
