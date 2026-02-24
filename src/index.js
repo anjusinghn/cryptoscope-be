@@ -86,3 +86,25 @@ async function collectWorkspaceFiles(root) {
     const current = queue.pop();
     let entries;
     try {
+      entries = await fs.promises.readdir(current, { withFileTypes: true });
+    } catch (err) {
+      log.warn('collectWorkspaceFiles readdir failed', { path: current, error: String(err?.message || err) });
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith('.git') && entry.isDirectory()) continue;
+      const abs = path.join(current, entry.name);
+      const rel = posixPath(path.relative(root, abs));
+      if (visited.has(abs)) continue;
+      visited.add(abs);
+      if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name)) continue;
+        queue.push(abs);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!SUPPORTED_EXT.has(ext)) continue;
+      const canonicalRel = rel || entry.name;
+      results.push({
+        path: canonicalRel,
