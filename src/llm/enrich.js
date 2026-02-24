@@ -84,3 +84,25 @@ function buildPromptItem(finding, context) {
 function dedupeChunks(primary, related) {
   const seen = new Set();
   const out = [];
+  if (primary) {
+    seen.add(primary.id);
+    out.push(primary);
+  }
+  for (const chunk of related || []) {
+    if (!chunk || seen.has(chunk.id)) continue;
+    seen.add(chunk.id);
+    out.push(chunk);
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+function buildContext(chunks) {
+  return chunks
+    .map((chunk, idx) => `Context ${idx + 1} (${chunk.label || 'chunk'} lines ${chunk.start_line || chunk.startLine}-${chunk.end_line || chunk.endLine}):\n${chunk.content}`)
+    .join('\n\n');
+}
+
+async function enrichBatch({ model, versionId, items }) {
+  if (!model) return items.map(({ finding }) => ({ finding, enrichment: heuristicEnrichment(finding) }));
+  const promptItems = items.map((item, idx) => ({ index: idx, ...buildPromptItem(item.finding, item.context) }));
