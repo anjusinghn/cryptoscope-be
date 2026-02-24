@@ -90,3 +90,26 @@ rules:
           - pattern: crypto.createCipheriv($ALGO, $KEY, new Uint8Array($N))
           - pattern: createCipheriv($ALGO, $KEY, new Uint8Array($N))
       - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*cbc[^\"']*[\"']$"
+
+  - id: cryptoscope.node.aes.gcm
+    languages: [javascript, typescript]
+    message: AES-GCM usage detected (AEAD).
+    severity: INFO
+    metadata:
+      category: mode
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, ...)
+          - pattern: createCipheriv($ALGO, ...)
+          - pattern: crypto.createDecipheriv($ALGO, ...)
+          - pattern: createDecipheriv($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*gcm[^\"']*[\"']$"
+
+  - id: cryptoscope.js.math.random
+    languages: [javascript, typescript]
+    message: Math.random used. Not cryptographically secure.
+    severity: ERROR
