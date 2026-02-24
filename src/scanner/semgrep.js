@@ -89,3 +89,25 @@ function resolvePythonSitePackages() {
       }
     } catch (err) {
       // ignore and continue to next candidate
+    }
+  }
+  return null;
+}
+
+function prepareSemgrepEnv() {
+  // Semgrep tries to write logs under ~/.semgrep by default, which may be disallowed.
+  // Redirect logs and app data into a workspace-local directory.
+  const workspaceRoot = process.cwd();
+  const semgrepDir = path.resolve(workspaceRoot, '.semgrep');
+  try { fs.mkdirSync(semgrepDir, { recursive: true }); } catch {}
+  const localHome = semgrepDir;
+  const sitePackages = resolvePythonSitePackages();
+  let mergedPythonPath = process.env.PYTHONPATH || '';
+  if (Array.isArray(sitePackages)) {
+    for (const sp of sitePackages) {
+      if (!sp) continue;
+      mergedPythonPath = mergedPythonPath ? `${mergedPythonPath}:${sp}` : sp;
+    }
+  } else if (typeof sitePackages === 'string' && sitePackages) {
+    mergedPythonPath = mergedPythonPath ? `${mergedPythonPath}:${sitePackages}` : sitePackages;
+  }
