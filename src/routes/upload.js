@@ -81,3 +81,24 @@ router.post('/api/upload-zip', upload.single('file'), async (req, res) => {
       await fs.promises.rm(tempDir, { recursive: true, force: true });
     } catch {}
   }
+});
+
+// SSE endpoint for ZIP upload with real-time progress
+router.options('/api/upload-zip-sse', cors(corsOptions));
+router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Missing file upload.' });
+  }
+
+  const hash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+  const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'cryptoscope-zip-'));
+  const zipPath = path.join(tempDir, 'upload.zip');
+
+  try {
+    // Set up SSE
+    res.status(200);
+    const origin = String(req.headers.origin || '');
+    const isAllowed = origin && (ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin));
+    if (isAllowed) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
