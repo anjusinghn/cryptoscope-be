@@ -88,3 +88,25 @@ Findings JSON:`,
     ];
 
     const result = await runnable.invoke([
+      { role: 'system', content: system },
+      ...user,
+    ]);
+
+    const itemsByIndex = new Map(result.items.map((it) => [it.index, it]));
+    const items = findings.map((_, i) => {
+      const it = itemsByIndex.get(i);
+      if (it) return it;
+      // If not present (due to slicing), fallback map
+      const sev = { high: 'high', warning: 'medium', info: 'low' }[findings[i].severity] || 'low';
+      return { index: i, severity: sev, reason: 'Fallback mapping for truncated items.' };
+    });
+
+    const enriched = findings.map((f, i) => ({ ...f, rankedSeverity: items[i].severity, rankReason: items[i].reason }));
+    return { items, enriched, usedLLM: true };
+  } catch (e) {
+    // Robust fallback if LLM call fails
+    return fallbackRank(findings);
+  }
+}
+
+function aggregateCountsByRank(rankedFindings) {
