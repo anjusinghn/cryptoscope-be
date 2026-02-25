@@ -109,3 +109,25 @@ router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
   log.info('sse connection open', { endpoint: 'analyze-sse', path: absPath });
 
   const send = (event, data) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (res.flush) res.flush(); // Explicitly flush to ensure immediate delivery
+  };
+
+  let cancelled = false;
+  // Disable timeouts and enable keepalive on the socket for long-running scans
+  try { req.setTimeout?.(0); } catch {}
+  try { res.setTimeout?.(0); } catch {}
+  try { req.socket?.setTimeout?.(0); } catch {}
+  try { req.socket?.setKeepAlive?.(true); } catch {}
+  try { req.socket?.setNoDelay?.(true); } catch {}
+
+  // Heartbeat ping every 15s to keep intermediaries from closing idle connections
+  let heartbeat = setInterval(() => {
+    try {
+      res.write(`event: ping\n`);
+      res.write(`data: {"t":${Date.now()}}\n\n`);
+      if (res.flush) res.flush();
+    } catch {}
+  }, 15000);
+
