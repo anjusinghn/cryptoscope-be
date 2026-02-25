@@ -78,3 +78,23 @@ async function buildFileArtifacts({ path, code, scanResult, skipIndexing }) {
     startLine: chunk.startLine,
     endLine: chunk.endLine,
     label: chunk.label,
+    content: chunk.content,
+    embedding: Array.isArray(embeddings[idx]) ? embeddings[idx] : [],
+  }));
+
+  log.info('=== INDEX: Artifacts built ===', { 
+    path, 
+    chunks: enrichedChunks.length,
+    findings: findings.length,
+    summary_total: summary.total,
+    step: 'INDEX_COMPLETE'
+  });
+
+  return {
+    path,
+    language,
+    size: Buffer.byteLength(content, 'utf8'),
+    summary,
+    findings,
+    chunks: enrichedChunks,
+    content,
