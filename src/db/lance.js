@@ -84,3 +84,25 @@ async function upsertChunks(versionId, chunks) {
     await table.deleteWhere(`versionId = '${versionId.replace(/'/g, "''")}'`);
   } catch (err) {
     log.warn('lancedb deleteWhere failed', { versionId, error: err?.message });
+  }
+  const docs = [];
+  for (const chunk of chunks) {
+    const embedding = normalizeEmbedding(chunk.embedding);
+    if (!embedding) continue;
+    docs.push({
+      id: `${versionId}:${chunk.filePath}:${chunk.chunkIndex}`,
+      versionId,
+      filePath: chunk.filePath,
+      chunkIndex: typeof chunk.chunkIndex === 'number' ? chunk.chunkIndex : 0,
+      startLine: typeof chunk.startLine === 'number' ? chunk.startLine : 0,
+      endLine: typeof chunk.endLine === 'number' ? chunk.endLine : 0,
+      label: chunk.label || null,
+      content: chunk.content || null,
+      embedding,
+    });
+  }
+  if (docs.length === 0) return;
+  await table.add(docs);
+  log.info('LanceDB upsert complete', { versionId, rows: docs.length });
+}
+
