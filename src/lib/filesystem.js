@@ -93,3 +93,22 @@ async function collectWorkspaceFiles(root) {
   
   return results;
 }
+
+async function describeDirectory(root) {
+  const out = [];
+  async function walk(dir, level) {
+    let entries;
+    try {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch (err) {
+      log.warn('describeDirectory failed', { dir, error: String(err?.message || err) });
+      return;
+    }
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+    for (const entry of entries) {
+      const abs = path.join(dir, entry.name);
+      const rel = posixPath(path.relative(root, abs)) || entry.name;
+      if (entry.isDirectory()) {
+        const supported = !SKIP_DIRS.has(entry.name);
+        out.push({ type: 'folder', name: entry.name, path: rel, level, supported });
+        if (supported) await walk(abs, level + 1);
