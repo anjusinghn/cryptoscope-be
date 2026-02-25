@@ -96,3 +96,22 @@ async function scanRepo(url) {
           if (Array.isArray(data.findings)) findings.push(...data.findings.map(f => ({ ...f, path: data.path })));
           console.log(`File: ${data.path}  findings: ${data.summary?.total || 0}`);
         } else if (ev === 'progress') {
+          process.stdout.write(`\rProgress ${data.done}/${data.total}`);
+        } else if (ev === 'done') {
+          summary = data.summary || summary;
+          console.log(`\nDone. Findings total: ${summary.total}`);
+          // Generate a report for the repo
+          (async () => {
+            const repRes = await apiFetch('/api/generate-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ findings, meta: { source: 'cli-repo', repo: url, files: files.length, summary } }) });
+            if (repRes.ok) {
+              const data = await repRes.json();
+              console.log('\n=== Report (Markdown) ===\n');
+              console.log(String(data?.report || ''));
+            }
+          })().catch(() => {});
+        }
+      }
+    });
+    res.on('end', () => {});
+  });
+  req.on('error', (e) => { console.error('SSE error:', e.message); });
