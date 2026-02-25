@@ -84,3 +84,24 @@ function makeFindingId(fileId, index) {
 }
 
 async function readScanPayload(versionId) {
+  await ensureInitialized();
+  const filePath = scanFilePath(versionId);
+  try {
+    const raw = await fs.promises.readFile(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
+async function writeScanPayload(versionId, payload) {
+  await ensureInitialized();
+  const filePath = scanFilePath(versionId);
+  await fs.promises.writeFile(filePath, JSON.stringify(payload, null, 2));
+}
+
+async function initDb() {
+  await ensureInitialized();
+}
+
