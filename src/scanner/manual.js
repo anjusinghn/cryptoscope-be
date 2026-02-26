@@ -98,3 +98,22 @@ function scanManual(code, filename = 'snippet') {
         findings.push({ line: i + 1, column: (m.index || 0) + 1, match: lines[i].trim().slice(0, 200), ruleId: 'manual.java.kdf.pbkdf2.iterations', category: 'kdf', severity: sev, description: `PBKDF2 iterations = ${N}` });
       }
     }
+  }
+  const summary = summarize(findings);
+  return {
+    filename,
+    language,
+    summary,
+    findings,
+    lines: lines.length,
+    truncated: String(code).length > MAX_CHARS,
+    generatedAt: new Date().toISOString(),
+    provider: 'manual',
+  };
+}
+
+async function scanManualAsync(code, filename = 'snippet') {
+  return scanManual(code, filename);
+}
+
+module.exports = { scanManual, scanManualAsync };

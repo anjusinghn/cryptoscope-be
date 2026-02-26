@@ -108,3 +108,25 @@ async function loadTransformersEmbedder() {
         if (!ensured) {
           if (quantized) {
             const qfile = path.join(localModel, 'onnx', 'model_quantized.onnx');
+            log.warn('local quantized model missing or is a Git LFS pointer', { file: qfile });
+          } else {
+            const p = path.join(localModel, 'onnx', 'model.onnx');
+            log.warn('local onnx model missing or is a Git LFS pointer', { file: p });
+          }
+          log.warn('embedding may fail unless you fetch real ONNX weights (git lfs pull) or allow remote downloads via EMBEDDING_REMOTE=1');
+        }
+      } else {
+        env.allowRemoteModels = true;
+        model = resolveRemoteModel();
+        quantized = process.env.EMBEDDING_QUANTIZED !== 'false';
+      }
+
+      const pipe = await pipeline('feature-extraction', model, { quantized });
+      embedderAvailable = 'transformers';
+      log.info('loaded transformers embedder', {
+        model,
+        source: localModel ? 'local' : 'remote',
+        quantized,
+        remoteAllowed: Boolean(env.allowRemoteModels),
+      });
+      return pipe;
