@@ -97,3 +97,23 @@ function chunkByRegex(source, regex, labelPrefix = 'function') {
   }
   return out;
 }
+
+function chunkJava(source) {
+  const methodRegex = /(?:public|protected|private)?\s*(?:static\s+)?[\w<>\[\]]+\s+(\w+)\s*\([^)]*\)\s*\{/g;
+  return chunkByRegex(source, methodRegex, 'method');
+}
+
+function chunkC(source) {
+  const funcRegex = /(?:[\w\*\s]+)?\s+(\w+)\s*\([^;]*\)\s*\{/g;
+  return chunkByRegex(source, funcRegex, 'function');
+}
+
+function dedupeChunks(chunks) {
+  const seen = new Set();
+  const out = [];
+  for (const chunk of chunks) {
+    const key = `${chunk.startLine}:${chunk.endLine}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(chunk);
+  }
