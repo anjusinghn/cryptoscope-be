@@ -111,3 +111,26 @@ function prepareSemgrepEnv() {
   } else if (typeof sitePackages === 'string' && sitePackages) {
     mergedPythonPath = mergedPythonPath ? `${mergedPythonPath}:${sitePackages}` : sitePackages;
   }
+  if (!mergedPythonPath) {
+    const homedir = os.homedir();
+    const fallbacks = [
+      path.join(homedir, '.local', 'lib', 'python3.13', 'site-packages'),
+      '/usr/lib/python3.13/site-packages',
+    ].filter((p) => {
+      try { return fs.existsSync(p); } catch { return false; }
+    });
+    if (fallbacks.length) {
+      mergedPythonPath = fallbacks.join(':');
+    }
+  }
+  const env = {
+    ...process.env,
+    SEMGREP_USER_LOG_FILE: path.join(semgrepDir, 'semgrep.log'),
+    SEMGREP_APP_DATA_DIR: semgrepDir,
+    SEMGREP_SEND_METRICS: 'off',
+    SEMGREP_DISABLE_VERSION_CHECK: '1',
+    HOME: localHome,
+  };
+  if (mergedPythonPath) env.PYTHONPATH = mergedPythonPath;
+  // Ensure the temporary HOME exists for semgrep runtime cache/logs
+  try { fs.mkdirSync(localHome, { recursive: true }); } catch {}
