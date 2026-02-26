@@ -103,3 +103,24 @@ async function scanWorkspace({
                 step: 'INDEX_SKIPPED',
               });
             }
+
+            const artifact = await buildFileArtifacts({
+              path: file.path,
+              code: content,
+              scanResult: scan,
+              skipIndexing: indexingDisabled,
+            });
+
+            if (!indexingDisabled) {
+              log.info('=== INDEX: Artifacts complete ===', {
+                versionId,
+                path: file.path,
+                chunks: artifact.chunks?.length || 0,
+                findings: artifact.summary.total,
+                embeddings: artifact.chunks?.filter(c => c.embedding?.length > 0).length || 0,
+                step: 'INDEX_COMPLETE',
+              });
+            } else {
+              log.info('=== INDEX: Stored scan summary without embeddings ===', {
+                versionId,
+                path: file.path,
