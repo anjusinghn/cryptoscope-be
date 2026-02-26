@@ -105,3 +105,24 @@ function getRepoPath(id) {
   const ent = repoCache.get(id);
   if (!ent) return null;
   return ent.root;
+}
+
+function getRepoMeta(id) {
+  return repoCache.get(id) || null;
+}
+
+function registerWorkspace(entry) {
+  const { id, root, scanRoot, meta } = entry;
+  if (!id || !root || !scanRoot) throw new Error('registerWorkspace requires id, root, scanRoot');
+  const record = {
+    ...(meta || {}),
+    root,
+    scanRoot,
+    id,
+    createdAt: Date.now(),
+  };
+  repoCache.set(id, record);
+  return record;
+}
+
+module.exports = { cloneGithub, getRepoPath, parseGithubUrl, getRepoMeta, registerWorkspace };
