@@ -103,3 +103,24 @@ router.get('/api/file-primitives', async (req, res) => {
               filePath: row.filePath,
               chunkIndex: row.chunkIndex,
               startLine: row.startLine ?? 0,
+              endLine: row.endLine ?? 0,
+              label: row.label || null,
+              content: row.content || null,
+            }));
+          }
+        } catch (e) {
+          log.warn('file-primitives embed/search failed', { versionId, error: String(e?.message || e) });
+        }
+      }
+      const enrichment = f.enrichment || heuristicEnrichment(f);
+      outputs.push({ finding, enrichment, matches });
+    }
+
+    return res.json({ versionId, path: file.path, items: outputs });
+  } catch (err) {
+    log.error('api/file-primitives error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to load primitives' });
+  }
+});
+
+module.exports = router;
