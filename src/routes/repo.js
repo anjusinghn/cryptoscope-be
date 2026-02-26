@@ -111,3 +111,26 @@ router.post('/api/git-clone', async (req, res) => {
       step: 'WORKSPACE_SCAN_COMPLETE'
     });
 
+    enrichFindingsForVersion(versionId).catch((err) => {
+      log.warn('enrich (repo) failed', { versionId, error: String(err?.message || err) });
+    });
+
+    log.info('=== ANALYSIS PIPELINE COMPLETE - Building response ===', { 
+      versionId,
+      step: 'ANALYSIS_COMPLETE'
+    });
+
+    const response = buildAnalysisResult(scan);
+    response.repo = { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName, versionId, id };
+    return res.json(response);
+  } catch (err) {
+    log.error('=== API/GIT-CLONE ERROR ===', { 
+      error: String(err?.message || err),
+      stack: err?.stack,
+      versionId: err?.versionId || 'unknown',
+      step: 'ERROR'
+    });
+    return res.status(500).json({ error: 'Failed to clone and analyze repository.' });
+  }
+});
+
