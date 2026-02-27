@@ -113,3 +113,26 @@ rules:
     languages: [javascript, typescript]
     message: Math.random used. Not cryptographically secure.
     severity: ERROR
+    metadata:
+      category: random
+      recommendation: Use crypto.getRandomValues or crypto.randomBytes.
+    pattern: Math.random(...)
+
+  - id: cryptoscope.node.randombytes
+    languages: [javascript, typescript]
+    message: crypto.randomBytes usage detected (CSPRNG).
+    severity: INFO
+    metadata:
+      category: random
+    pattern: crypto.randomBytes(...)
+
+  - id: cryptoscope.node.hmac.sha1
+    languages: [javascript, typescript]
+    message: HMAC with SHA-1 detected.
+    severity: ERROR
+    metadata:
+      category: mac
+      recommendation: Use HMAC with SHA-256 or better.
+    patterns:
+      - pattern-either:
+          - pattern: $C.createHmac($ALGO, ...)
