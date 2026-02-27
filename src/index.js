@@ -108,3 +108,25 @@ async function collectWorkspaceFiles(root) {
       const canonicalRel = rel || entry.name;
       results.push({
         path: canonicalRel,
+        absolutePath: abs,
+        content: async () => {
+          const data = await fs.promises.readFile(abs, 'utf8');
+          return data;
+        },
+      });
+      if (results.length >= MAX_SCAN_FILES) {
+        log.warn('collectWorkspaceFiles limit reached', { max: MAX_SCAN_FILES, root: rootReal });
+        return results;
+      }
+    }
+  }
+  return results;
+}
+
+async function describeDirectory(root) {
+  const out = [];
+  async function walk(dir, level) {
+    let entries;
+    try {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch (err) {
