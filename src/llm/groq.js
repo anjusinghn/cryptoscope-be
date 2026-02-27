@@ -110,3 +110,25 @@ Findings JSON:`,
 }
 
 function aggregateCountsByRank(rankedFindings) {
+  const counts = { low: 0, medium: 0, high: 0 };
+  for (const f of rankedFindings) {
+    const sev = f.rankedSeverity || ({ high: 'high', warning: 'medium', info: 'low' }[f.severity] || 'low');
+    counts[sev]++;
+  }
+  return counts;
+}
+
+function topFindings(rankedFindings, maxPerSev = 5) {
+  const buckets = { high: [], medium: [], low: [] };
+  for (const f of rankedFindings) {
+    const sev = f.rankedSeverity || ({ high: 'high', warning: 'medium', info: 'low' }[f.severity] || 'low');
+    buckets[sev].push(f);
+  }
+  const pick = (arr) => arr.slice(0, maxPerSev).map((f) => ({
+    ruleId: f.ruleId,
+    category: f.category,
+    severity: f.rankedSeverity || f.severity,
+    rankedSeverity: f.rankedSeverity || ({ high: 'high', warning: 'medium', info: 'low' }[f.severity] || 'low'),
+    description: f.description,
+    recommendation: f.recommendation,
+    line: f.line,
