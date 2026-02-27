@@ -106,3 +106,24 @@ function buildContext(chunks) {
 async function enrichBatch({ model, versionId, items }) {
   if (!model) return items.map(({ finding }) => ({ finding, enrichment: heuristicEnrichment(finding) }));
   const promptItems = items.map((item, idx) => ({ index: idx, ...buildPromptItem(item.finding, item.context) }));
+  const schema = {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            index: { type: 'number' },
+            primitive: { type: 'string' },
+            algorithm: { type: 'string' },
+            mode: { type: 'string' },
+            key_size: { type: ['string', 'number'] },
+            iv_usage: { type: 'string' },
+            salt_usage: { type: 'string' },
+            risk_summary: { type: 'string' },
+          },
+          required: ['index', 'primitive', 'algorithm', 'mode', 'key_size', 'iv_usage', 'salt_usage', 'risk_summary'],
+        },
+      },
+    },
