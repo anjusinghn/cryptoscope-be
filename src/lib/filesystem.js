@@ -112,3 +112,21 @@ async function describeDirectory(root) {
         const supported = !SKIP_DIRS.has(entry.name);
         out.push({ type: 'folder', name: entry.name, path: rel, level, supported });
         if (supported) await walk(abs, level + 1);
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        out.push({ type: 'file', name: entry.name, path: rel, level, supported: SUPPORTED_EXT.has(ext) });
+      }
+    }
+  }
+  await walk(root, 0);
+  return out;
+}
+
+module.exports = {
+  SUPPORTED_EXT,
+  SKIP_DIRS,
+  posixPath,
+  safeStat,
+  collectWorkspaceFiles,
+  describeDirectory,
+};

@@ -131,3 +131,25 @@ router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
     } catch {}
   }, 15000);
 
+  req.on('close', () => { cancelled = true; try { clearInterval(heartbeat); } catch {}; heartbeat = null; });
+
+  try {
+    send('collecting', { message: 'Collecting files...' });
+    const files = await collectWorkspaceFiles(absPath);
+    send('start', { total: files.length });
+
+    if (!files.length) {
+      const emptyResult = {
+        status: 'ok',
+        total_files: 0,
+        crypto_files_found: 0,
+        message: 'No supported source files found in directory.',
+        basic_analysis: [],
+        detailed_reviews: [],
+      };
+      send('done', emptyResult);
+      return res.end();
+    }
+
+    const versionId = `local:${crypto.createHash('sha1').update(absPath).digest('hex')}:${stat.mtimeMs}`;
+    registerWorkspace({ id: versionId, root: absPath, scanRoot: absPath, meta: { source: 'local', path: absPath } });
