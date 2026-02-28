@@ -134,3 +134,25 @@ router.post('/api/git-clone', async (req, res) => {
   }
 });
 
+// Scan repo (REST, returns repo payload)
+router.post('/api/scan-repo', async (req, res) => {
+  try {
+    const { url, force, concurrency } = req.body || {};
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'Missing `url` string.' });
+    }
+    let parsed;
+    try {
+      parsed = parseGithubUrl(url);
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid GitHub URL.' });
+    }
+    const { id, scanRoot, versionId, meta } = await cloneGithub(url);
+    registerWorkspace({ id, root: meta.root, scanRoot, meta: { ...meta, source: 'github' } });
+
+    if (!force) {
+      const cached = await getCachedScan(versionId);
+      if (cached) {
+        const payload = buildRepoPayload({ scan: cached, repoMeta: meta, root: path.basename(scanRoot), cached: true });
+        return res.json(payload);
+      }
