@@ -106,3 +106,24 @@ async function upsertChunks(versionId, chunks) {
   log.info('LanceDB upsert complete', { versionId, rows: docs.length });
 }
 
+async function searchChunks(versionId, vector, limit = 5) {
+  if (!versionId || !Array.isArray(vector) || vector.length === 0) return [];
+  try {
+    const table = await ensureTable();
+    if (!table) return [];
+    const norm = normalizeEmbedding(vector);
+    if (!norm) return [];
+    const res = await table
+      .search(norm)
+      .where(`versionId = '${versionId.replace(/'/g, "''")}'`)
+      .limit(limit)
+      .execute();
+    const rows = Array.isArray(res) ? res : res.toArray?.() ? await res.toArray() : [];
+    return rows;
+  } catch (err) {
+    log.warn('lancedb search failed', { versionId, error: err?.message });
+    return [];
+  }
+}
+
+module.exports = { upsertChunks, searchChunks };
