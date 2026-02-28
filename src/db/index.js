@@ -105,3 +105,25 @@ async function initDb() {
   await ensureInitialized();
 }
 
+function normalizeEmbedding(vec) {
+  if (!Array.isArray(vec)) return [];
+  return vec.map((v) => {
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n : 0;
+  });
+}
+
+async function storeScanResult(scan) {
+  const {
+    versionId,
+    sourceType,
+    sourceLocator,
+    summary = {},
+    meta = {},
+    files = [],
+  } = scan || {};
+  if (!versionId) throw new Error('storeScanResult requires versionId');
+
+  const now = new Date().toISOString();
+  const existing = await readScanPayload(versionId);
+  const createdAt = existing?.version?.created_at || now;

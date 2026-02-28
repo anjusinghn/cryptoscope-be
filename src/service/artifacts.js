@@ -98,3 +98,23 @@ async function buildFileArtifacts({ path, code, scanResult, skipIndexing }) {
     findings,
     chunks: enrichedChunks,
     content,
+  };
+}
+
+function mergeSummaries(acc, next) {
+  acc.total += next.total || 0;
+  for (const [k, v] of Object.entries(next.byCategory || {})) {
+    acc.byCategory[k] = (acc.byCategory[k] || 0) + v;
+  }
+  for (const [k, v] of Object.entries(next.bySeverity || {})) {
+    acc.bySeverity[k] = (acc.bySeverity[k] || 0) + v;
+  }
+}
+
+function summarizeFiles(files) {
+  const summary = { total: 0, byCategory: {}, bySeverity: {} };
+  for (const f of files) mergeSummaries(summary, f.summary || {});
+  return summary;
+}
+
+module.exports = { buildFileArtifacts, summarizeFiles };
