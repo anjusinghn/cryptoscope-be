@@ -115,3 +115,22 @@ async function scanRepo(url) {
     res.on('end', () => {});
   });
   req.on('error', (e) => { console.error('SSE error:', e.message); });
+  req.end();
+}
+
+async function main() {
+  const [cmd, arg] = process.argv.slice(2);
+  if (!cmd || !arg) {
+    console.log('Usage:');
+    console.log('  node be/scripts/analyzer.js scan-file <path>');
+    console.log('  node be/scripts/analyzer.js scan-repo <github_url>');
+    process.exit(1);
+  }
+  if (cmd === 'scan-file') return await scanFile(arg);
+  if (cmd === 'scan-repo') return await scanRepo(arg);
+  console.error('Unknown command:', cmd);
+  process.exit(2);
+}
+
+main().catch((e) => { console.error('Error:', e?.message || e); process.exit(1); });
+
