@@ -134,3 +134,26 @@ function prepareSemgrepEnv() {
   if (mergedPythonPath) env.PYTHONPATH = mergedPythonPath;
   // Ensure the temporary HOME exists for semgrep runtime cache/logs
   try { fs.mkdirSync(localHome, { recursive: true }); } catch {}
+  return env;
+}
+
+let SEMGREP_CMD = null;
+function resolveSemgrepCmd(env) {
+  if (SEMGREP_CMD) return SEMGREP_CMD;
+  const tryCmd = (cmd) => {
+    try {
+      const p = spawnSync(cmd, ['--version'], { encoding: 'utf8', env });
+      // consider any output as viable; semgrep returns version on stdout
+      if (p && typeof p.stdout === 'string' && p.stdout.trim().length > 0) return true;
+      // Some builds may not support --version; accept if exit code is 0
+      if (p && p.status === 0) return true;
+    } catch {}
+    return false;
+  };
+  if (tryCmd('semgrep')) { SEMGREP_CMD = 'semgrep'; return SEMGREP_CMD; }
+  if (tryCmd('pysemgrep')) { SEMGREP_CMD = 'pysemgrep'; return SEMGREP_CMD; }
+  // Fallback to semgrep; caller will surface a helpful error if it fails
+  SEMGREP_CMD = 'semgrep';
+  return SEMGREP_CMD;
+}
+
