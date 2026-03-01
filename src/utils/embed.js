@@ -130,3 +130,25 @@ async function loadTransformersEmbedder() {
         remoteAllowed: Boolean(env.allowRemoteModels),
       });
       return pipe;
+    } catch (err) {
+      embedderAvailable = null;
+      log.warn('failed to load transformers embedder', { error: String(err?.message || err) });
+      throw err;
+    }
+  })();
+  return embedderPromise;
+}
+
+async function embedWithHttp(texts) {
+  const url = process.env.EMBEDDING_API_URL;
+  if (!url || !hasGlobalFetch) return null;
+  try {
+    const body = { input: texts, model: resolveRemoteModel() };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(`HTTP ${res.status}: ${msg}`);
