@@ -117,3 +117,23 @@ function dedupeChunks(chunks) {
     seen.add(key);
     out.push(chunk);
   }
+  return out.sort((a, b) => a.startLine - b.startLine);
+}
+
+function chunkSource({ code, language, filename }) {
+  const source = String(code || '');
+  const lines = source.split(/\r?\n/);
+  const totalLines = lines.length;
+  let chunks = [];
+  switch (language) {
+    case 'javascript':
+    case 'typescript':
+      chunks = chunkJsOrTs(source, filename || 'file.js');
+      break;
+    case 'java':
+      chunks = chunkJava(source);
+      break;
+    case 'c':
+    case 'cpp':
+      chunks = chunkC(source);
+      break;

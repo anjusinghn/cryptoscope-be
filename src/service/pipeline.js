@@ -124,3 +124,24 @@ async function scanWorkspace({
               log.info('=== INDEX: Stored scan summary without embeddings ===', {
                 versionId,
                 path: file.path,
+                findings: artifact.summary.total,
+                step: 'INDEX_DISABLED_COMPLETE',
+              });
+            }
+            
+            results.push(artifact);
+            if (onFile) await onFile({ file: artifact });
+            
+            log.info('File processing complete', { 
+              versionId, 
+              path: file.path, 
+              findings: artifact.summary.total,
+              chunks: artifact.chunks?.length || 0
+            });
+          } catch (err) {
+            log.error('scanWorkspace file error', { 
+              versionId,
+              path: file.path, 
+              error: String(err?.message || err),
+              stack: err?.stack
+            });
