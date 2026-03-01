@@ -136,3 +136,26 @@ rules:
     patterns:
       - pattern-either:
           - pattern: $C.createHmac($ALGO, ...)
+          - pattern: createHmac($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.node.hmac.generic
+    languages: [javascript, typescript]
+    message: HMAC usage detected.
+    severity: INFO
+    metadata:
+      category: mac
+    pattern: $C.createHmac(...)
+
+  - id: cryptoscope.node.hash.md5
+    languages: [javascript, typescript]
+    message: MD5 detected (collision-prone, not suitable for security).
+    severity: ERROR
+    metadata:
+      category: hash
+      recommendation: Use SHA-256/384+ or BLAKE2/3 depending on needs.
+    patterns:
+      - pattern-either:
+          - pattern: $C.createHash($ALGO, ...)
