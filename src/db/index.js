@@ -127,3 +127,24 @@ async function storeScanResult(scan) {
   const now = new Date().toISOString();
   const existing = await readScanPayload(versionId);
   const createdAt = existing?.version?.created_at || now;
+
+  const preparedFiles = [];
+  const lanceDocs = [];
+  for (const file of files) {
+    const filePath = typeof file.path === 'string' ? file.path : 'unknown';
+    const fileId = makeFileId(versionId, filePath);
+    const chunks = [];
+    if (Array.isArray(file.chunks)) {
+      for (const chunk of file.chunks) {
+        const index = typeof chunk.index === 'number' ? chunk.index : chunks.length;
+        const chunkId = makeChunkId(fileId, index);
+        const embedding = normalizeEmbedding(chunk.embedding);
+        chunks.push({
+          id: chunkId,
+          chunkIndex: index,
+          label: chunk.label || null,
+          startLine: typeof chunk.startLine === 'number' ? chunk.startLine : null,
+          endLine: typeof chunk.endLine === 'number' ? chunk.endLine : null,
+          content: chunk.content || null,
+          embedding,
+        });

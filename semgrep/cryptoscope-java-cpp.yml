@@ -156,3 +156,26 @@ rules:
       - metavariable-regex:
           metavariable: ALGO
           regex: "(?i)^[\"']?AES/CBC/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.cipher.gcm
+    languages: [java]
+    message: AES/GCM usage detected (AEAD).
+    severity: INFO
+    metadata:
+      category: mode
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: Cipher.getInstance($ALGO, ...)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?AES/GCM/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.cipher.any
+    languages: [java]
+    message: Cipher.getInstance usage detected.
+    severity: INFO
+    metadata:
+      category: cipher
