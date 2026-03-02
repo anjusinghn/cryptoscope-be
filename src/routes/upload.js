@@ -123,3 +123,24 @@ router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), asy
       if (res.flush) res.flush(); // Explicitly flush to ensure immediate delivery
     };
 
+    let cancelled = false;
+    // Disable timeouts and enable keepalive on the socket for long-running uploads/scans
+    try { req.setTimeout?.(0); } catch {}
+    try { res.setTimeout?.(0); } catch {}
+    try { req.socket?.setTimeout?.(0); } catch {}
+    try { req.socket?.setKeepAlive?.(true); } catch {}
+    try { req.socket?.setNoDelay?.(true); } catch {}
+
+    // Heartbeat ping every 15s to keep intermediaries from closing idle connections
+    let heartbeat = setInterval(() => {
+      try {
+        res.write(`event: ping\n`);
+        res.write(`data: {"t":${Date.now()}}\n\n`);
+        if (res.flush) res.flush();
+      } catch {}
+    }, 15000);
+
+    req.on('close', () => { cancelled = true; try { clearInterval(heartbeat); } catch {}; heartbeat = null; });
+
+    send('extracting', { message: 'Extracting archive...' });
+    await fs.promises.writeFile(zipPath, req.file.buffer);
