@@ -127,3 +127,25 @@ async function enrichBatch({ model, versionId, items }) {
         },
       },
     },
+    required: ['items'],
+  };
+  try {
+    const runnable = model.withStructuredOutput(schema);
+    const response = await runnable.invoke([
+      {
+        role: 'system',
+        content: 'You are a cryptography security analyst. For each finding, classify the crypto primitive and record algorithm, mode, key size, IV usage, salt usage, and a short risk summary. Use "unknown" when information is not present.',
+      },
+      {
+        role: 'user',
+        content: [{ type: 'text', text: `Analyze findings JSON:\n${JSON.stringify(promptItems)}` }],
+      },
+    ]);
+    const map = new Map();
+    for (const item of response.items || []) {
+      map.set(item.index, {
+        primitive: item.primitive || 'unknown',
+        algorithm: item.algorithm || 'unknown',
+        mode: item.mode || 'unknown',
+        key_size: String(item.key_size ?? 'unknown'),
+        iv_usage: item.iv_usage || 'unknown',
