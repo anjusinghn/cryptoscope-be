@@ -156,3 +156,26 @@ router.post('/api/scan-repo', async (req, res) => {
         const payload = buildRepoPayload({ scan: cached, repoMeta: meta, root: path.basename(scanRoot), cached: true });
         return res.json(payload);
       }
+    }
+
+    const files = await collectWorkspaceFiles(scanRoot);
+    if (!files.length) {
+      return res.json(buildRepoPayload({
+        scan: { versionId, summary: { total: 0, byCategory: {}, bySeverity: {} }, files: [] },
+        repoMeta: meta,
+        root: path.basename(scanRoot),
+        cached: false,
+      }));
+    }
+
+    const scan = await scanWorkspace({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId,
+      sourceType: 'github',
+      sourceLocator: url,
+      meta: { repo: meta },
+      concurrency,
+      skipIndexing: INDEXING_DISABLED,
+    });
+
+    enrichFindingsForVersion(versionId).catch((err) => {
