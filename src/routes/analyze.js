@@ -153,3 +153,25 @@ router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
 
     const versionId = `local:${crypto.createHash('sha1').update(absPath).digest('hex')}:${stat.mtimeMs}`;
     registerWorkspace({ id: versionId, root: absPath, scanRoot: absPath, meta: { source: 'local', path: absPath } });
+
+    const scan = await scanWorkspace({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId,
+      sourceType: 'local',
+      sourceLocator: absPath,
+      meta: { path: absPath },
+      concurrency: Number.isFinite(concurrency) && concurrency > 0 ? concurrency : DEFAULT_CONCURRENCY,
+      skipIndexing: INDEXING_DISABLED,
+      onFile: async ({ file, error }) => {
+        if (cancelled) return;
+        if (error) {
+          send('error', { message: `Error scanning file: ${file?.path}` });
+        } else if (file && !INDEXING_DISABLED) {
+          send('indexing', { message: `Indexing file: ${file.path}` });
+        }
+      },
+      onProgress: async ({ done, total }) => {
+        if (!cancelled) send('scanning', { message: `Scanning files...`, done, total });
+      },
+    });
+
