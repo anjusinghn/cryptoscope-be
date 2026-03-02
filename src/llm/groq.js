@@ -132,3 +132,26 @@ function topFindings(rankedFindings, maxPerSev = 5) {
     description: f.description,
     recommendation: f.recommendation,
     line: f.line,
+    column: f.column,
+    snippet: typeof f.match === 'string' ? (f.match.length > 200 ? f.match.slice(0, 200) + '…' : f.match) : String(f.match),
+  }));
+  return {
+    high: pick(buckets.high),
+    medium: pick(buckets.medium),
+    low: pick(buckets.low),
+  };
+}
+
+/**
+ * Generate a markdown report using LLM (fallback to deterministic text if no API key).
+ * Input rankedFindings can be raw; function uses rankedSeverity if present or maps info/warning/high to low/medium/high.
+ */
+async function generateReportWithGroq(rankedFindings, meta = {}) {
+  if (!Array.isArray(rankedFindings)) return '# Report\n\nNo findings.';
+  const counts = aggregateCountsByRank(rankedFindings);
+  const top = topFindings(rankedFindings, 5);
+
+  const header = {
+    title: 'Cryptoscope Security Report',
+    generatedAt: new Date().toISOString(),
+    meta,
