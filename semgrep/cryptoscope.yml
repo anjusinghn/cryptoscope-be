@@ -159,3 +159,26 @@ rules:
     patterns:
       - pattern-either:
           - pattern: $C.createHash($ALGO, ...)
+          - pattern: createHash($ALGO, ...)
+          - pattern: CryptoJS.MD5(...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']md5[\"']$"
+
+  - id: cryptoscope.node.hash.sha1
+    languages: [javascript, typescript]
+    message: SHA-1 detected (collision-prone, avoid for new designs).
+    severity: ERROR
+    metadata:
+      category: hash
+      recommendation: Prefer SHA-256/384+, BLAKE2/3, or SHA-3.
+    patterns:
+      - pattern-either:
+          - pattern: $C.createHash($ALGO, ...)
+          - pattern: createHash($ALGO, ...)
+          - pattern: CryptoJS.SHA1(...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.node.kdf.pbkdf2.iterations.low
