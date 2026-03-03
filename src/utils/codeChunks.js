@@ -137,3 +137,22 @@ function chunkSource({ code, language, filename }) {
     case 'cpp':
       chunks = chunkC(source);
       break;
+    default:
+      chunks = [];
+  }
+
+  if (!chunks || chunks.length === 0) {
+    const window = Number(process.env.CHUNK_FALLBACK_LINES || 200);
+    for (let start = 1; start <= totalLines; start += window) {
+      const end = Math.min(totalLines, start + window - 1);
+      chunks.push({ startLine: start, endLine: end, content: sliceLines(lines, start, end), label: `lines ${start}-${end}` });
+    }
+  }
+
+  return dedupeChunks(chunks).map((chunk, index) => ({
+    ...chunk,
+    index,
+  }));
+}
+
+module.exports = { chunkSource };
