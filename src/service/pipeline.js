@@ -145,3 +145,24 @@ async function scanWorkspace({
               error: String(err?.message || err),
               stack: err?.stack
             });
+            if (onFile) await onFile({ file: { path: file.path }, error: err });
+          } finally {
+            active -= 1;
+            completed += 1;
+            if (onProgress) await onProgress({ done: completed, total });
+            next();
+          }
+        })().catch((err) => {
+          log.error('scanWorkspace task error', { 
+            versionId,
+            error: String(err?.message || err),
+            stack: err?.stack
+          });
+          active -= 1;
+          completed += 1;
+          next();
+        });
+      }
+    };
+    next();
+  });
