@@ -152,3 +152,25 @@ async function embedWithHttp(texts) {
     if (!res.ok) {
       const msg = await res.text();
       throw new Error(`HTTP ${res.status}: ${msg}`);
+    }
+    const json = await res.json();
+    const data = Array.isArray(json?.data) ? json.data : [];
+    const vectors = data.map((item) => Array.isArray(item?.embedding) ? item.embedding : []);
+    embedderAvailable = 'http';
+    return vectors;
+  } catch (err) {
+    log.warn('http embedding failed', { error: String(err?.message || err) });
+    return null;
+  }
+}
+
+async function embedTexts(texts) {
+  if (!Array.isArray(texts) || texts.length === 0) return [];
+  if (process.env.EMBEDDING_DISABLED === '1') return texts.map(() => []);
+
+  // Prefer explicit HTTP endpoint if configured
+  if (process.env.EMBEDDING_API_URL) {
+    const viaHttp = await embedWithHttp(texts);
+    if (viaHttp) return viaHttp;
+  }
+
