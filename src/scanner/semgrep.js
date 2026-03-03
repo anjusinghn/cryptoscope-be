@@ -157,3 +157,25 @@ function resolveSemgrepCmd(env) {
   return SEMGREP_CMD;
 }
 
+function writeTempFile(code, filename, language) {
+  const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'cryptoscope-sg-'));
+  const base = path.basename(filename || 'snippet' + langToExt(language));
+  const hasExt = /\.[A-Za-z0-9]+$/.test(base);
+  const file = path.join(tmpdir, hasExt ? base : (base + langToExt(language)));
+  fs.writeFileSync(file, code);
+  return { tmpdir, file };
+}
+
+function runSemgrepSync(targetPath) {
+  // Prefer scanning with our rules directory; include all yml under be/semgrep.
+  // Resolve relative to this file to avoid cwd issues.
+  const cfgPath = path.resolve(__dirname, '..', '..', 'semgrep', 'cryptoscope-java-cpp.yml');
+  const args = [
+    'scan',
+    '--json', '--no-rewrite-rule-ids', '--skip-unknown-extensions',
+    '--config', cfgPath,
+    targetPath,
+  ];
+  const started = Date.now();
+  
+  // Check if config file exists
