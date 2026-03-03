@@ -144,3 +144,23 @@ router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), asy
 
     send('extracting', { message: 'Extracting archive...' });
     await fs.promises.writeFile(zipPath, req.file.buffer);
+    const extractDir = path.join(tempDir, 'extract');
+    await fs.promises.mkdir(extractDir, { recursive: true });
+    await extract(zipPath, { dir: extractDir });
+
+    const cacheKey = `zip:${hash}`;
+    if (!req.body?.force) {
+      const cached = await getCachedScan(cacheKey);
+      if (cached) {
+        const response = buildAnalysisResult(cached);
+        response.status = 'cached';
+        response.versionId = cacheKey;
+        send('cached', response);
+        return res.end();
+      }
+    }
+
+    send('collecting', { message: 'Collecting files...' });
+    const files = await collectWorkspaceFiles(extractDir);
+    send('start', { total: files.length });
+
