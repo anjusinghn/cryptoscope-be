@@ -175,3 +175,25 @@ router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
       },
     });
 
+    send('enriching', { message: 'Enriching findings...' });
+    enrichFindingsForVersion(versionId).catch((err) => {
+      log.warn('enrich (local-sse) failed', { versionId, error: String(err?.message || err) });
+    });
+
+    if (!cancelled) {
+      const response = buildAnalysisResult(scan);
+      response.versionId = versionId;
+      send('done', response);
+      // Small delay before closing to ensure event is received
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  } catch (err) {
+    log.error('api/analyze-sse error', { error: String(err?.message || err) });
+    try {
+      send('error', { message: 'Failed to analyze directory.' });
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch {}
+  } finally {
+    try { if (heartbeat) clearInterval(heartbeat); } catch {}
+    res.end();
+  }
