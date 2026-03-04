@@ -149,3 +149,24 @@ async function enrichBatch({ model, versionId, items }) {
         mode: item.mode || 'unknown',
         key_size: String(item.key_size ?? 'unknown'),
         iv_usage: item.iv_usage || 'unknown',
+        salt_usage: item.salt_usage || 'unknown',
+        risk_summary: item.risk_summary || 'Crypto usage detected',
+      });
+    }
+    return items.map(({ finding }, idx) => {
+      const enriched = map.get(idx);
+      return { finding, enrichment: enriched || heuristicEnrichment(finding) };
+    });
+  } catch (err) {
+    log.warn('enrichBatch fallback', { versionId, error: String(err?.message || err) });
+    return items.map(({ finding }) => ({ finding, enrichment: heuristicEnrichment(finding) }));
+  }
+}
+
+async function enrichFindingsForVersion(versionId) {
+  log.info('=== STEP 3: ENRICH - Starting LLM enrichment ===', { 
+    versionId,
+    step: 'ENRICH_START'
+  });
+
+  const scan = await loadScanResult(versionId);
