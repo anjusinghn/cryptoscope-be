@@ -148,3 +148,24 @@ async function storeScanResult(scan) {
           content: chunk.content || null,
           embedding,
         });
+        if (embedding.length) {
+          lanceDocs.push({
+            filePath,
+            chunkIndex: index,
+            startLine: typeof chunk.startLine === 'number' ? chunk.startLine : null,
+            endLine: typeof chunk.endLine === 'number' ? chunk.endLine : null,
+            label: chunk.label || null,
+            content: chunk.content || null,
+            embedding,
+          });
+        }
+      }
+    }
+
+    const chunkRanges = chunks.map((chunk) => ({
+      id: chunk.id,
+      start: typeof chunk.startLine === 'number' ? chunk.startLine : null,
+      end: typeof chunk.endLine === 'number' ? chunk.endLine : null,
+    }));
+
+    const findings = [];
