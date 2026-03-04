@@ -179,3 +179,25 @@ rules:
     severity: INFO
     metadata:
       category: cipher
+    pattern-either:
+      - pattern: Cipher.getInstance(...)
+      - pattern: javax.crypto.Cipher.getInstance(...)
+
+  - id: cryptoscope.java.rsa.pkcs1padding
+    languages: [java]
+    message: RSA with PKCS#1 v1.5 padding detected (vulnerable to padding oracles).
+    severity: WARNING
+    metadata:
+      category: cipher
+      recommendation: Use OAEP (e.g., "RSA/ECB/OAEPWithSHA-256AndMGF1Padding").
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($TRANSFORM)
+          - pattern: javax.crypto.Cipher.getInstance($TRANSFORM)
+      - metavariable-regex:
+          metavariable: TRANSFORM
+          regex: "(?i)^[\"']?RSA/ECB/PKCS1Padding[\"']?$"
+
+  - id: cryptoscope.java.rsa.oaep.sha1
+    languages: [java]
+    message: RSA OAEP with SHA-1 detected (consider SHA-256+).
