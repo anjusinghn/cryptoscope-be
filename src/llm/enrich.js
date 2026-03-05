@@ -170,3 +170,24 @@ async function enrichFindingsForVersion(versionId) {
   });
 
   const scan = await loadScanResult(versionId);
+  if (!scan) {
+    log.warn('enrichFindingsForVersion missing scan', { versionId });
+    return;
+  }
+
+  // Count total findings to enrich
+  const totalFindings = (scan.files || []).reduce((sum, file) => sum + (file.findings?.length || 0), 0);
+  log.info('=== STEP 3: ENRICH - Files and findings to process ===', { 
+    versionId, 
+    files: (scan.files || []).length,
+    totalFindings,
+    step: 'ENRICH_PREPARE'
+  });
+  const model = await getGroqModel();
+  const pending = [];
+  for (const file of scan.files || []) {
+    for (const finding of file.findings || []) {
+      if (finding.enrichment) continue;
+      const chunk = (file.chunks || []).find((c) => c.id === finding.chunkId);
+      let contextChunks = chunk ? [chunk] : [];
+      const queryText = `query: ${finding.description || ''} ${finding.match || ''}`.trim();
