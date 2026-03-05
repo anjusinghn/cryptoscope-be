@@ -164,3 +164,24 @@ router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), asy
     const files = await collectWorkspaceFiles(extractDir);
     send('start', { total: files.length });
 
+    if (!files.length) {
+      const emptyResult = {
+        status: 'ok',
+        total_files: 0,
+        crypto_files_found: 0,
+        message: 'Archive uploaded but no supported source files were found.',
+        basic_analysis: [],
+        detailed_reviews: [],
+      };
+      send('done', emptyResult);
+      return res.end();
+    }
+
+    const scan = await scanWorkspace({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId: cacheKey,
+      sourceType: 'zip',
+      sourceLocator: `zip:${hash.slice(0, 8)}`,
+      meta: { zipHash: hash },
+      concurrency: Number.isFinite(req.body?.concurrency) && req.body?.concurrency > 0 ? req.body.concurrency : DEFAULT_CONCURRENCY,
+      skipIndexing: INDEXING_DISABLED,
