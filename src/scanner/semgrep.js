@@ -179,3 +179,26 @@ function runSemgrepSync(targetPath) {
   const started = Date.now();
   
   // Check if config file exists
+  try {
+    const configExists = fs.existsSync(cfgPath);
+    log.info('Semgrep config check', { cfgPath, exists: configExists });
+    if (!configExists) {
+      log.error('Semgrep config file missing', { cfgPath });
+      throw new Error(`Config file not found: ${cfgPath}`);
+    }
+  } catch (e) {
+    log.error('Config file check failed', { cfgPath, error: e.message });
+    throw e;
+  }
+
+  log.info('Semgrep sync start', { cfgPath, targetPath, args, cmd: 'semgrep' });
+  const env = prepareSemgrepEnv();
+  const cmd = resolveSemgrepCmd(env);
+  
+  log.info('Semgrep command resolved', { cmd, env: { SEMGREP_USER_LOG_FILE: env.SEMGREP_USER_LOG_FILE } });
+  
+  const proc = spawnSync(cmd, args, { encoding: 'utf8', env });
+  const dur = Date.now() - started;
+  
+  log.info('Semgrep execution complete', { 
+    code: proc.status, 
