@@ -166,3 +166,24 @@ async function scanWorkspace({
     };
     next();
   });
+
+  // summary aggregator above accumulates incorrectly; recalc from results to avoid drift
+  const sortedResults = results.sort((a, b) => a.path.localeCompare(b.path));
+  summary = summarizeFiles(sortedResults);
+
+  log.info('=== STEP 2: INDEX - Storing scan results ===', { 
+    versionId, 
+    files: sortedResults.length, 
+    totalFindings: summary.total,
+    by_severity: summary.bySeverity,
+    by_category: summary.byCategory,
+    step: 'INDEX_STORE',
+    indexingDisabled,
+  });
+
+  await storeScanResult({ versionId, sourceType, sourceLocator, summary, meta, files: sortedResults });
+  
+  log.info('=== STEP 2: INDEX - Scan results persisted ===', { 
+    versionId, 
+    files: sortedResults.length, 
+    totalFindings: summary.total,

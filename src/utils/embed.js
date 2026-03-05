@@ -174,3 +174,24 @@ async function embedTexts(texts) {
     if (viaHttp) return viaHttp;
   }
 
+  try {
+    const pipe = await loadTransformersEmbedder();
+    const vectors = [];
+    for (const text of texts) {
+      try {
+        const output = await pipe(text, { pooling: 'mean', normalize: true });
+        const embedding = Array.from(output.data ?? output);
+        vectors.push(embedding);
+      } catch (err) {
+        log.warn('embedding invocation failed', { error: String(err?.message || err) });
+        vectors.push([]);
+      }
+    }
+    return vectors;
+  } catch (err) {
+    log.error('embedding failed', { error: String(err?.message || err) });
+    return texts.map(() => []);
+  }
+}
+
+module.exports = { embedTexts };
