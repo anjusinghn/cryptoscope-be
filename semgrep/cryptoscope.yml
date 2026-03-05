@@ -182,3 +182,26 @@ rules:
           regex: "(?i)^[\"']sha-?1[\"']$"
 
   - id: cryptoscope.node.kdf.pbkdf2.iterations.low
+    languages: [javascript, typescript]
+    message: PBKDF2 iterations too low (< 10000).
+    severity: ERROR
+    metadata:
+      category: kdf
+      recommendation: Use >= 100k iterations with SHA-256 or stronger (consider 200k-600k+).
+    patterns:
+      - pattern-either:
+          - pattern: $C.pbkdf2($P, $S, $N, ...)
+          - pattern: $C.pbkdf2Sync($P, $S, $N, ...)
+          - pattern: pbkdf2($P, $S, $N, ...)
+          - pattern: pbkdf2Sync($P, $S, $N, ...)
+      - metavariable-comparison:
+          metavariable: N
+          comparison: N < 10000
+
+  - id: cryptoscope.node.kdf.pbkdf2.iterations.maybe_low
+    languages: [javascript, typescript]
+    message: PBKDF2 iterations may be low (< 100000).
+    severity: WARNING
+    metadata:
+      category: kdf
+      recommendation: Consider >= 100k iterations with SHA-256 or stronger.
