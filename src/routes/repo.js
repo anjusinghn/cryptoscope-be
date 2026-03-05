@@ -179,3 +179,25 @@ router.post('/api/scan-repo', async (req, res) => {
     });
 
     enrichFindingsForVersion(versionId).catch((err) => {
+      log.warn('enrich (scan-repo) failed', { versionId, error: String(err?.message || err) });
+    });
+
+    const payload = buildRepoPayload({ scan, repoMeta: meta, root: path.basename(scanRoot), cached: false });
+    return res.json(payload);
+  } catch (err) {
+    log.error('api/scan-repo error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to scan repository.' });
+  }
+});
+
+// SSE endpoint for live scan
+router.options('/api/scan-repo-sse', cors(corsOptions));
+router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
+  const url = String(req.query.url || '').trim();
+  const force = String(req.query.force || 'false') === 'true';
+  const concurrency = parseInt(String(req.query.concurrency || ''), 10);
+
+  if (!url) {
+    res.status(400).json({ error: 'Missing `url` query parameter.' });
+    return;
+  }
