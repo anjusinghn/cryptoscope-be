@@ -177,3 +177,25 @@ async function generateReportWithGroq(rankedFindings, meta = {}) {
     '',
     '## Top Findings (Low)',
     ...top.low.map((f, i) => `- [L${i + 1}] ${f.ruleId || f.category}: ${f.description}${f.recommendation ? ` — Fix: ${f.recommendation}` : ''}`),
+    '',
+    '## Suggested Next Actions',
+    '- Prioritize high severity fixes (broken crypto, insecure algorithms, zero IV, missing auth).',
+    '- Address medium issues (weak params, deprecated APIs) as part of hardening.',
+    '- Tackle low severity items in routine refactors and documentation.',
+  ].filter(Boolean).join('\n');
+
+  if (!API_KEY) {
+    return fallbackReport();
+  }
+
+  try {
+    const model = await getChatGroq();
+    const sys = `You are a senior application security engineer. Produce a concise, actionable security report in Markdown for a codebase's cryptography usage and risks.`;
+    const context = {
+      header,
+      top,
+    };
+    const messages = [
+      { role: 'system', content: sys },
+      {
+        role: 'user',
