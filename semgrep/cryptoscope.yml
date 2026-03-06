@@ -205,3 +205,25 @@ rules:
     metadata:
       category: kdf
       recommendation: Consider >= 100k iterations with SHA-256 or stronger.
+    patterns:
+      - pattern-either:
+          - pattern: $C.pbkdf2($P, $S, $N, ...)
+          - pattern: $C.pbkdf2Sync($P, $S, $N, ...)
+          - pattern: pbkdf2($P, $S, $N, ...)
+          - pattern: pbkdf2Sync($P, $S, $N, ...)
+      - metavariable-comparison:
+          metavariable: N
+          comparison: N < 100000
+
+  - id: cryptoscope.node.kdf.pbkdf2
+    languages: [javascript, typescript]
+    message: PBKDF2 usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+      recommendation: Ensure sufficient iterations and a modern hash (SHA-256).
+    pattern-either:
+      - pattern: $C.pbkdf2(...)
+      - pattern: $C.pbkdf2Sync(...)
+      - pattern: pbkdf2(...)
+      - pattern: pbkdf2Sync(...)
