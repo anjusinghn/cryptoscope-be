@@ -199,3 +199,25 @@ async function generateReportWithGroq(rankedFindings, meta = {}) {
       { role: 'system', content: sys },
       {
         role: 'user',
+        content: [
+          { type: 'text', text: 'Generate a clear, concise Markdown report with:' },
+          { type: 'text', text: '- Title + generation time' },
+          { type: 'text', text: '- Severity summary (High/Medium/Low) with counts' },
+          { type: 'text', text: '- Brief risk overview' },
+          { type: 'text', text: '- Top high/medium/low findings (1-3 bullets each) with brief remediation guidance' },
+          { type: 'text', text: '- Prioritized next steps' },
+          { type: 'text', text: 'Input JSON follows:' },
+          { type: 'text', text: JSON.stringify(context) },
+        ],
+      },
+    ];
+    const resp = await model.invoke(messages);
+    const content = typeof resp?.content === 'string' ? resp.content : Array.isArray(resp?.content) ? resp.content.map((c) => c?.text || '').join('\n') : String(resp);
+    return content;
+  } catch (e) {
+    const warn = '\\n\\n> Note: LLM generation failed. Showing fallback summary.';
+    return fallbackReport() + warn;
+  }
+}
+
+module.exports = { classifyFindingsWithGroq, generateReportWithGroq };
