@@ -197,3 +197,25 @@ router.get('/api/analyze-sse', cors(corsOptions), async (req, res) => {
     try { if (heartbeat) clearInterval(heartbeat); } catch {}
     res.end();
   }
+});
+
+router.get('/api/directory-structure', async (req, res) => {
+  try {
+    const targetPath = String(req.query.path || '').trim();
+    if (!targetPath) {
+      return res.status(400).json({ error: 'Missing `path` query parameter.' });
+    }
+    const absPath = path.resolve(targetPath);
+    const stat = await safeStat(absPath);
+    if (!stat || !stat.isDirectory()) {
+      return res.status(404).json({ error: 'Directory not found.' });
+    }
+    const entries = await describeDirectory(absPath);
+    return res.json({ entries });
+  } catch (err) {
+    log.error('api/directory-structure error', { error: String(err?.message || err) });
+    return res.status(500).json({ error: 'Failed to enumerate directory.' });
+  }
+});
+
+module.exports = router;

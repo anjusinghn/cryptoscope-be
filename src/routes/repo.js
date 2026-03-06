@@ -201,3 +201,26 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
     res.status(400).json({ error: 'Missing `url` query parameter.' });
     return;
   }
+
+  let parsed;
+  try {
+    parsed = parseGithubUrl(url);
+  } catch (err) {
+    res.status(400).json({ error: 'Invalid GitHub URL.' });
+    return;
+  }
+
+  res.status(200);
+  // CORS headers for SSE
+  const origin = String(req.headers.origin || '');
+  const isAllowed = origin && (ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin));
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Cache-Control, Last-Event-ID');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Cache-Control, Last-Event-ID');
