@@ -196,3 +196,25 @@ function buildRepoPayload({ scan, repoMeta, root, cached }) {
       repo: repoMeta?.repo || null,
       ref: repoMeta?.ref || null,
       subpath: repoMeta?.subpath || null,
+      commit: repoMeta?.commit || null,
+      versionId: repoMeta?.versionId || scan.versionId || null,
+    },
+    root,
+    files,
+    filesScanned: files.length,
+    summary,
+    generatedAt: scan.version?.updated_at || new Date().toISOString(),
+    cached: Boolean(cached),
+  };
+}
+
+function uniqueList(items) {
+  return Array.from(new Set((items || []).map((v) => (typeof v === 'string' ? v.trim() : '')).filter(Boolean)));
+}
+
+function buildBasicAnalysis(file) {
+  const analysis = {
+    file_path: file.path,
+    file_name: path.basename(file.path),
+    file_extension: path.extname(file.path).replace(/^\./, ''),
+    has_crypto: false,
