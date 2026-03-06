@@ -187,3 +187,23 @@ async function scanWorkspace({
     versionId, 
     files: sortedResults.length, 
     totalFindings: summary.total,
+    step: 'INDEX_COMPLETE',
+    indexingDisabled,
+  });
+  
+  log.info('=== CRYPTOSCOPE ANALYSIS PIPELINE COMPLETE ===', { 
+    versionId, 
+    files: sortedResults.length, 
+    totalFindings: summary.total,
+    step: 'PIPELINE_COMPLETE',
+    indexingDisabled,
+  });
+  
+  return { versionId, summary, files: sortedResults };
+}
+
+async function getCachedScan(versionId) {
+  return await loadScanResult(versionId);
+}
+
+module.exports = { scanWorkspace, getCachedScan };
