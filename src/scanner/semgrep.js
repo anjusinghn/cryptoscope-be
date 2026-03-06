@@ -202,3 +202,25 @@ function runSemgrepSync(targetPath) {
   
   log.info('Semgrep execution complete', { 
     code: proc.status, 
+    duration_ms: dur, 
+    stdout_len: (proc.stdout || '').length, 
+    stderr_len: (proc.stderr || '').length,
+    cmd,
+    args: args.join(' ')
+  });
+  
+  if (proc.stderr) {
+    log.warn('Semgrep stderr', { stderr: proc.stderr });
+  }
+  
+  const stdout = proc.stdout || '';
+  
+  // Log raw output for debugging
+  if (stdout) {
+    log.info('Semgrep stdout preview', { 
+      first_500_chars: stdout.substring(0, 500),
+      total_length: stdout.length 
+    });
+  }
+  
+  // Semgrep exit code: 0 (no findings), 1 (findings), 2+ (errors). Parse JSON when present.
