@@ -169,3 +169,25 @@ async function storeScanResult(scan) {
     }));
 
     const findings = [];
+    if (Array.isArray(file.findings)) {
+      for (let idx = 0; idx < file.findings.length; idx++) {
+        const finding = file.findings[idx];
+        const line = typeof finding.line === 'number' ? finding.line : null;
+        let chunkId = finding.chunkId || null;
+        if (!chunkId && line !== null && chunkRanges.length) {
+          const direct = chunkRanges.find((range) => {
+            const start = typeof range.start === 'number' ? range.start : -Infinity;
+            const end = typeof range.end === 'number' ? range.end : Infinity;
+            return line >= start && line <= end;
+          });
+          if (direct) {
+            chunkId = direct.id;
+          } else {
+            let nearest = null;
+            for (const range of chunkRanges) {
+              if (typeof range.start !== 'number' && typeof range.end !== 'number') continue;
+              const start = typeof range.start === 'number' ? range.start : range.end || 0;
+              const end = typeof range.end === 'number' ? range.end : range.start || start;
+              const centroid = (start + end) / 2;
+              const dist = Math.abs(centroid - line);
+              if (!nearest || dist < nearest.dist) nearest = { id: range.id, dist };
