@@ -206,3 +206,23 @@ router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), asy
     if (!cancelled) {
       const response = buildAnalysisResult(scan);
       response.versionId = cacheKey;
+      send('done', response);
+      // Small delay before closing to ensure event is received
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  } catch (err) {
+    log.error('api/upload-zip-sse error', { error: String(err?.message || err) });
+    try {
+      send('error', { message: 'Failed to process archive.' });
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch {}
+  } finally {
+    try {
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+    } catch {}
+    try { if (heartbeat) clearInterval(heartbeat); } catch {}
+    res.end();
+  }
+});
+
+module.exports = router;
