@@ -224,3 +224,25 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Cache-Control, Last-Event-ID');
+  }
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+  log.info('sse connection open', { endpoint: 'scan-repo-sse', url, origin: req.headers.origin || null, referer: req.headers.referer || null });
+
+  const send = (event, data) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (res.flush) res.flush(); // Explicitly flush to ensure immediate delivery
+  };
+
+  let cancelled = false;
+  // Disable timeouts and enable keepalive on the socket for long-running scans
+  try { req.setTimeout?.(0); } catch {}
+  try { res.setTimeout?.(0); } catch {}
+  try { req.socket?.setTimeout?.(0); } catch {}
+  try { req.socket?.setKeepAlive?.(true); } catch {}
+  try { req.socket?.setNoDelay?.(true); } catch {}
+
