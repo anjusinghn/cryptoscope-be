@@ -191,3 +191,24 @@ async function storeScanResult(scan) {
               const centroid = (start + end) / 2;
               const dist = Math.abs(centroid - line);
               if (!nearest || dist < nearest.dist) nearest = { id: range.id, dist };
+            }
+            if (nearest) chunkId = nearest.id;
+          }
+        }
+        findings.push({
+          id: makeFindingId(fileId, idx),
+          line,
+          column: typeof finding.column === 'number' ? finding.column : null,
+          ruleId: finding.ruleId || null,
+          category: finding.category || null,
+          severity: finding.severity || null,
+          description: finding.description || null,
+          recommendation: finding.recommendation || null,
+          match: finding.match || null,
+          chunkId,
+          enrichment: finding.enrichment || null,
+          raw: finding.raw || finding || null,
+        });
+      }
+    }
+
