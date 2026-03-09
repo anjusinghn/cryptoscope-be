@@ -224,3 +224,26 @@ function runSemgrepSync(targetPath) {
   }
   
   // Semgrep exit code: 0 (no findings), 1 (findings), 2+ (errors). Parse JSON when present.
+  try {
+    const result = JSON.parse(stdout);
+    log.info('Semgrep JSON parsed successfully', { 
+      results_count: result?.results?.length || 0,
+      errors_count: result?.errors?.length || 0,
+      has_results: Boolean(result?.results?.length)
+    });
+    
+    if (result?.results?.length > 0) {
+      log.info('Semgrep findings summary', {
+        total_findings: result.results.length,
+        rule_ids: [...new Set(result.results.map(r => r.check_id))],
+        severities: [...new Set(result.results.map(r => r.extra?.severity || 'unknown'))]
+      });
+    }
+    
+    return result;
+  } catch (e) {
+    log.error('Semgrep JSON parse failed', { 
+      error: e.message, 
+      stdout_preview: stdout.substring(0, 1000),
+      stderr: proc.stderr || 'none'
+    });
