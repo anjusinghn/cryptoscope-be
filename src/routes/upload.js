@@ -185,3 +185,24 @@ router.post('/api/upload-zip-sse', cors(corsOptions), upload.single('file'), asy
       meta: { zipHash: hash },
       concurrency: Number.isFinite(req.body?.concurrency) && req.body?.concurrency > 0 ? req.body.concurrency : DEFAULT_CONCURRENCY,
       skipIndexing: INDEXING_DISABLED,
+      onFile: async ({ file, error }) => {
+        if (cancelled) return;
+        if (error) {
+          send('error', { message: `Error scanning file: ${file?.path}` });
+        } else if (file && !INDEXING_DISABLED) {
+          send('indexing', { message: `Indexing file: ${file.path}` });
+        }
+      },
+      onProgress: async ({ done, total }) => {
+        if (!cancelled) send('scanning', { message: `Scanning files...`, done, total });
+      },
+    });
+
+    send('enriching', { message: 'Enriching findings...' });
+    enrichFindingsForVersion(cacheKey).catch((err) => {
+      log.warn('enrich (zip-sse) failed', { versionId: cacheKey, error: String(err?.message || err) });
+    });
+
+    if (!cancelled) {
+      const response = buildAnalysisResult(scan);
+      response.versionId = cacheKey;
