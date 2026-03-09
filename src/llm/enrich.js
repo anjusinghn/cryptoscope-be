@@ -191,3 +191,25 @@ async function enrichFindingsForVersion(versionId) {
       const chunk = (file.chunks || []).find((c) => c.id === finding.chunkId);
       let contextChunks = chunk ? [chunk] : [];
       const queryText = `query: ${finding.description || ''} ${finding.match || ''}`.trim();
+      let vectorLiteral = null;
+      let vectorArray = null;
+      if (queryText.length > 6) {
+        try {
+          const [vec] = await embedTexts([queryText]);
+          if (vec && vec.length) {
+            vectorArray = vec;
+            vectorLiteral = toVectorLiteral(vec);
+            log.debug('enrich embedding generated', { versionId, file: file.path, line: finding.line, dim: vec.length });
+          }
+        } catch (err) {
+          log.warn('embed query failed', { versionId, error: String(err?.message || err) });
+        }
+      }
+      const candidates = [];
+      if (vectorArray) {
+        try {
+          const lanceRows = await searchChunksLance(versionId, vectorArray, 6);
+          for (const row of lanceRows || []) {
+            candidates.push({
+              id: row.id ?? `${row.filePath || ''}:${row.chunkIndex ?? 0}`,
+              start_line: row.startLine ?? row.start_line ?? 0,
