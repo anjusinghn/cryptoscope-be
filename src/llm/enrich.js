@@ -234,3 +234,25 @@ async function enrichFindingsForVersion(versionId) {
               start_line: row.start_line,
               end_line: row.end_line,
               label: row.label,
+              content: row.content,
+            });
+          }
+        } catch (err) {
+          log.warn('vector search failed', { versionId, error: String(err?.message || err) });
+        }
+      }
+      const all = candidates.length > 0 ? candidates : undefined;
+      if (all) {
+        contextChunks = dedupeChunks(chunk, all);
+      }
+      const context = buildContext(contextChunks);
+      pending.push({ finding: { ...finding, path: file.path }, context });
+    }
+  }
+
+  if (pending.length === 0) return;
+
+  const updates = [];
+  for (let i = 0; i < pending.length; i += DEFAULT_BATCH) {
+    const slice = pending.slice(i, i + DEFAULT_BATCH);
+    const enriched = await enrichBatch({ model, versionId, items: slice });
