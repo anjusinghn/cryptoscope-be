@@ -247,3 +247,25 @@ function runSemgrepSync(targetPath) {
       stdout_preview: stdout.substring(0, 1000),
       stderr: proc.stderr || 'none'
     });
+    const err = (proc.stderr || '').trim() || e.message;
+    throw new Error('Semgrep failed: ' + err);
+  }
+}
+
+function runSemgrepAsync(targetPath) {
+  return new Promise((resolve, reject) => {
+    const cfgPath = path.resolve(__dirname, '..', '..', 'semgrep', 'cryptoscope-java-cpp.yml');
+    const args = [
+      'scan',
+      '--json', '--no-rewrite-rule-ids', '--skip-unknown-extensions',
+      '--config', cfgPath,
+      targetPath,
+    ];
+    
+    // Check if config file exists
+    try {
+      const configExists = fs.existsSync(cfgPath);
+      log.info('Semgrep async config check', { cfgPath, exists: configExists });
+      if (!configExists) {
+        log.error('Semgrep async config file missing', { cfgPath });
+        reject(new Error(`Config file not found: ${cfgPath}`));
