@@ -213,3 +213,24 @@ async function enrichFindingsForVersion(versionId) {
             candidates.push({
               id: row.id ?? `${row.filePath || ''}:${row.chunkIndex ?? 0}`,
               start_line: row.startLine ?? row.start_line ?? 0,
+              end_line: row.endLine ?? row.end_line ?? 0,
+              label: row.label,
+              content: row.content,
+            });
+          }
+          if (lanceRows?.length) {
+            log.debug('lancedb search hit', { versionId, matches: lanceRows.length });
+          }
+        } catch (err) {
+          log.warn('lancedb search error', { versionId, error: String(err?.message || err) });
+        }
+      }
+      if (vectorLiteral) {
+        try {
+          const related = await searchChunksByVector(versionId, vectorLiteral, 6);
+          for (const row of related || []) {
+            candidates.push({
+              id: row.id,
+              start_line: row.start_line,
+              end_line: row.end_line,
+              label: row.label,
