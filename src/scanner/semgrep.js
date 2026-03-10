@@ -269,3 +269,26 @@ function runSemgrepAsync(targetPath) {
       if (!configExists) {
         log.error('Semgrep async config file missing', { cfgPath });
         reject(new Error(`Config file not found: ${cfgPath}`));
+        return;
+      }
+    } catch (e) {
+      log.error('Async config file check failed', { cfgPath, error: e.message });
+      reject(e);
+      return;
+    }
+    
+    log.info('Starting Semgrep async scan', { file: targetPath, cfgPath, args });
+    const t0 = Date.now();
+    const env = prepareSemgrepEnv();
+    const cmd = resolveSemgrepCmd(env);
+    
+  log.info('Semgrep async command resolved', {
+    cmd,
+    env: {
+      SEMGREP_USER_LOG_FILE: env.SEMGREP_USER_LOG_FILE,
+      HOME: env.HOME,
+      PYTHONPATH: env.PYTHONPATH,
+    }
+  });
+    
+    const p = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], env });
