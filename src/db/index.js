@@ -212,3 +212,25 @@ async function storeScanResult(scan) {
       }
     }
 
+    preparedFiles.push({
+      id: fileId,
+      path: filePath,
+      language: file.language || null,
+      size: typeof file.size === 'number' ? file.size : null,
+      summary: file.summary || {},
+      content: typeof file.content === 'string' ? file.content : null,
+      chunks,
+      findings,
+    });
+  }
+
+  const version = {
+    version_id: versionId,
+    source_type: sourceType || 'unknown',
+    source_locator: sourceLocator || '',
+    summary,
+    meta,
+    created_at: createdAt,
+    updated_at: now,
+  };
+
