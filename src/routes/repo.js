@@ -269,3 +269,25 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
         cachedResult.versionId = versionId;
         const rootName = path.basename(scanRoot);
         cachedResult.repo = { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName, versionId, id };
+        send('cached', cachedResult);
+        return res.end();
+      }
+    }
+
+    send('collecting', { message: 'Collecting files...' });
+    const files = await collectWorkspaceFiles(scanRoot);
+    send('start', { total: files.length });
+
+    if (!files.length) {
+      const emptyScan = { versionId, summary: { total: 0, byCategory: {}, bySeverity: {} }, files: [] };
+      const response = buildAnalysisResult(emptyScan);
+      response.versionId = versionId;
+      const rootName = path.basename(scanRoot);
+      response.repo = { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName, versionId, id };
+      send('done', response);
+      return res.end();
+    }
+
+    const scan = await scanWorkspace({
+      files: files.map((file) => ({ path: file.path, content: file.content })),
+      versionId,

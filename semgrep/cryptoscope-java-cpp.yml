@@ -269,3 +269,25 @@ rules:
     message: RSA key size set below 2048 bits.
     severity: ERROR
     metadata:
+      category: keygen
+      recommendation: Use at least 2048-bit RSA keys (3072+ preferred) or switch to ECC.
+    patterns:
+      - pattern-either:
+          - pattern: KeyPairGenerator.getInstance("RSA").initialize($BITS)
+          - pattern: KeyPairGenerator.getInstance("RSA").initialize($BITS, ...)
+          - pattern: java.security.KeyPairGenerator.getInstance("RSA").initialize($BITS)
+          - pattern: java.security.KeyPairGenerator.getInstance("RSA").initialize($BITS, ...)
+          - patterns:
+              - pattern: $GEN.initialize($BITS)
+              - pattern-inside: |
+                  KeyPairGenerator $GEN = KeyPairGenerator.getInstance("RSA");
+          - patterns:
+              - pattern: $GEN.initialize($BITS, ...)
+              - pattern-inside: |
+                  KeyPairGenerator $GEN = KeyPairGenerator.getInstance("RSA");
+          - patterns:
+              - pattern: $GEN.initialize($BITS)
+              - pattern-inside: |
+                  java.security.KeyPairGenerator $GEN = java.security.KeyPairGenerator.getInstance("RSA");
+          - patterns:
+              - pattern: $GEN.initialize($BITS, ...)
