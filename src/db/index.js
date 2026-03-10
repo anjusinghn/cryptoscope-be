@@ -234,3 +234,24 @@ async function storeScanResult(scan) {
     updated_at: now,
   };
 
+  const payload = { version, summary, files: preparedFiles };
+  await writeScanPayload(versionId, payload);
+
+  if (lanceDocs.length) {
+    try {
+      await upsertChunks(versionId, lanceDocs);
+      log.debug('lancedb upsert complete', { versionId, rows: lanceDocs.length });
+    } catch (err) {
+      log.warn('lancedb upsert error', { versionId, error: String(err?.message || err) });
+    }
+  }
+
+  return payload;
+}
+
+async function loadScanResult(versionId) {
+  const payload = await readScanPayload(versionId);
+  if (!payload) return null;
+  const files = (payload.files || []).map((file) => ({
+    ...file,
+    chunks: (file.chunks || []).map((chunk) => ({ ...chunk })),
