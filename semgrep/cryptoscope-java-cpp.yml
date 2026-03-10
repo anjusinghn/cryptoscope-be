@@ -246,3 +246,26 @@ rules:
 
   - id: cryptoscope.java.keygen.aes
     languages: [java]
+    message: Symmetric key generation (AES) detected.
+    severity: INFO
+    metadata:
+      category: keygen
+    pattern-either:
+      - pattern: KeyGenerator.getInstance("AES")
+      - pattern: javax.crypto.KeyGenerator.getInstance("AES")
+
+  - id: cryptoscope.java.keypair.rsa
+    languages: [java]
+    message: RSA keypair generation detected.
+    severity: INFO
+    metadata:
+      category: keygen
+    pattern-either:
+      - pattern: KeyPairGenerator.getInstance("RSA")
+      - pattern: java.security.KeyPairGenerator.getInstance("RSA")
+
+  - id: cryptoscope.java.keypair.rsa.small
+    languages: [java]
+    message: RSA key size set below 2048 bits.
+    severity: ERROR
+    metadata:

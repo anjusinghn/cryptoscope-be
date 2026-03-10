@@ -246,3 +246,26 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
   try { req.socket?.setKeepAlive?.(true); } catch {}
   try { req.socket?.setNoDelay?.(true); } catch {}
 
+  // Heartbeat ping every 15s to keep intermediaries from closing idle connections
+  let heartbeat = setInterval(() => {
+    try {
+      res.write(`event: ping\n`);
+      res.write(`data: {"t":${Date.now()}}\n\n`);
+      if (res.flush) res.flush();
+    } catch {}
+  }, 15000);
+
+  req.on('close', () => { cancelled = true; try { clearInterval(heartbeat); } catch {}; heartbeat = null; });
+
+  try {
+    send('cloning', { message: 'Cloning repository...' });
+    const { id, scanRoot, versionId, meta } = await cloneGithub(url);
+    registerWorkspace({ id, root: meta.root, scanRoot, meta: { ...meta, source: 'github' } });
+
+    if (!force) {
+      const cached = await getCachedScan(versionId);
+      if (cached) {
+        const cachedResult = buildAnalysisResult(cached);
+        cachedResult.versionId = versionId;
+        const rootName = path.basename(scanRoot);
+        cachedResult.repo = { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName, versionId, id };
