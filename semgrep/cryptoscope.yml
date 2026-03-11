@@ -273,3 +273,26 @@ rules:
       category: hash
       recommendation: Ensure a secure construction (e.g., HMAC, HKDF) where appropriate.
     patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance($ALGO)
+          - pattern: java.security.MessageDigest.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?SHA-?(?:224|256|384|512)[\"']?$"
+
+  - id: cryptoscope.java.mac.sha1
+    languages: [java]
+    message: HMAC with SHA-1 detected.
+    severity: ERROR
+    metadata:
+      category: mac
+      recommendation: Use HmacSHA256 or stronger.
+    patterns:
+      - pattern-either:
+          - pattern: Mac.getInstance($ALGO)
+          - pattern: Mac.getInstance($ALGO, ...)
+          - pattern: javax.crypto.Mac.getInstance($ALGO)
+          - pattern: javax.crypto.Mac.getInstance($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?hmacsha-?1[\"']?$"
