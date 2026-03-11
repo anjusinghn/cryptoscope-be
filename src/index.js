@@ -262,3 +262,25 @@ function buildBasicAnalysis(file) {
 }
 
 function buildAnalysisResult(scan) {
+  const files = Array.isArray(scan.files) ? scan.files : [];
+  const analyses = files.map(buildBasicAnalysis);
+  const cryptoFiles = analyses.filter((a) => a.has_crypto).length;
+  return {
+    status: 'ok',
+    total_files: files.length,
+    crypto_files_found: cryptoFiles,
+    message: cryptoFiles
+      ? `Detected cryptography usage in ${cryptoFiles} file${cryptoFiles === 1 ? '' : 's'}.`
+      : 'No cryptography usage detected with current rules.',
+    basic_analysis: analyses,
+    detailed_reviews: [],
+  };
+}
+
+async function runWorkspaceScan({ files, versionId, sourceType, sourceLocator, meta, concurrency }) {
+  return await scanWorkspace({
+    files,
+    versionId,
+    sourceType,
+    sourceLocator,
+    meta,
