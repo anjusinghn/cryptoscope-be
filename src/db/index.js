@@ -255,3 +255,24 @@ async function loadScanResult(versionId) {
   const files = (payload.files || []).map((file) => ({
     ...file,
     chunks: (file.chunks || []).map((chunk) => ({ ...chunk })),
+    findings: (file.findings || []).map((finding) => ({ ...finding })),
+  }));
+  const summary = payload.summary || payload.version?.summary || {};
+  return {
+    version: {
+      version_id: payload.version?.version_id || versionId,
+      source_type: payload.version?.source_type || 'unknown',
+      source_locator: payload.version?.source_locator || '',
+      summary,
+      meta: payload.version?.meta || {},
+      created_at: payload.version?.created_at || null,
+      updated_at: payload.version?.updated_at || null,
+    },
+    summary,
+    files,
+  };
+}
+
+async function searchChunksByVector(versionId, vectorLiteral, limit = 5) {
+  const vector = parseVectorLiteral(vectorLiteral);
+  if (!Array.isArray(vector) || vector.length === 0) return [];
