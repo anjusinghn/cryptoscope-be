@@ -256,3 +256,24 @@ async function enrichFindingsForVersion(versionId) {
   for (let i = 0; i < pending.length; i += DEFAULT_BATCH) {
     const slice = pending.slice(i, i + DEFAULT_BATCH);
     const enriched = await enrichBatch({ model, versionId, items: slice });
+    for (const { finding, enrichment } of enriched) {
+      updates.push({ id: finding.id, enrichment });
+    }
+  }
+
+  if (updates.length > 0) {
+    log.info('=== STEP 3: ENRICH - Applying enrichments ===', { 
+      versionId, 
+      findings: updates.length,
+      step: 'ENRICH_APPLY'
+    });
+    
+    await updateFindingsEnrichment(updates);
+    
+    log.info('=== STEP 3: ENRICH - Enrichment complete ===', { 
+      versionId, 
+      findings: updates.length,
+      step: 'ENRICH_COMPLETE'
+    });
+  } else {
+    log.info('=== STEP 3: ENRICH - No enrichments to apply ===', { 
