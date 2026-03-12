@@ -292,3 +292,26 @@ function runSemgrepAsync(targetPath) {
   });
     
     const p = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], env });
+    let out = '', err = '';
+    
+    p.stdout.on('data', d => {
+      const chunk = d.toString();
+      out += chunk;
+      log.debug('Semgrep async stdout chunk', { size: chunk.length });
+    });
+    
+    p.stderr.on('data', d => {
+      const chunk = d.toString();
+      err += chunk;
+      log.warn('Semgrep async stderr chunk', { chunk });
+    });
+    
+    p.on('error', (e) => {
+      log.error('Semgrep async process error', { error: e.message, cmd, args });
+      reject(e);
+    });
+    
+    p.on('close', (code) => {
+      const dur = Date.now() - t0;
+      log.info('Semgrep async scan finished', { 
+        file: targetPath, 
