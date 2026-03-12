@@ -284,3 +284,25 @@ async function runWorkspaceScan({ files, versionId, sourceType, sourceLocator, m
     sourceType,
     sourceLocator,
     meta,
+    concurrency: Number.isFinite(concurrency) && concurrency > 0 ? concurrency : DEFAULT_CONCURRENCY,
+    skipIndexing: INDEXING_DISABLED,
+  });
+}
+
+// Routes --------------------------------------------------------------
+
+// moved to routes/scan.js
+
+// moved to routes/analyze.js
+
+// moved to routes/analyze.js
+
+// moved to routes/repo.js
+
+// moved to routes/repo.js
+
+// moved to routes/repo.js
+
+// moved to routes/upload.js
+
+// moved to routes/llm.js

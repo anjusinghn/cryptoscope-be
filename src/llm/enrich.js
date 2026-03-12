@@ -277,3 +277,25 @@ async function enrichFindingsForVersion(versionId) {
     });
   } else {
     log.info('=== STEP 3: ENRICH - No enrichments to apply ===', { 
+      versionId,
+      step: 'ENRICH_COMPLETE'
+    });
+  }
+}
+
+function cosine(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return -1;
+  let dot = 0;
+  for (let i = 0; i < a.length; i++) dot += (a[i] || 0) * (b[i] || 0);
+  return dot;
+}
+
+function topSimilarChunks(chunks, queryVec, limit = 3) {
+  if (!Array.isArray(chunks) || !Array.isArray(queryVec)) return [];
+  return chunks
+    .map((chunk) => ({ chunk, score: cosine(chunk.embedding, queryVec) }))
+    .filter((item) => Number.isFinite(item.score))
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, limit)
+    .map((item) => item.chunk);
+}
