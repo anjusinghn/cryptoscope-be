@@ -276,3 +276,25 @@ async function loadScanResult(versionId) {
 async function searchChunksByVector(versionId, vectorLiteral, limit = 5) {
   const vector = parseVectorLiteral(vectorLiteral);
   if (!Array.isArray(vector) || vector.length === 0) return [];
+  const scan = await loadScanResult(versionId);
+  if (!scan) return [];
+  const ranked = [];
+  for (const file of scan.files || []) {
+    for (const chunk of file.chunks || []) {
+      if (!Array.isArray(chunk.embedding) || chunk.embedding.length !== vector.length) continue;
+      const score = cosineSimilarity(chunk.embedding, vector);
+      if (!Number.isFinite(score) || score < 0) continue;
+      ranked.push({
+        id: chunk.id,
+        file_id: file.id,
+        chunk_index: chunk.chunkIndex,
+        label: chunk.label,
+        start_line: chunk.startLine,
+        end_line: chunk.endLine,
+        content: chunk.content,
+        distance: 1 - score,
+      });
+    }
+  }
+  ranked.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  return ranked.slice(0, limit);
