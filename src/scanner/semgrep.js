@@ -315,3 +315,25 @@ function runSemgrepAsync(targetPath) {
       const dur = Date.now() - t0;
       log.info('Semgrep async scan finished', { 
         file: targetPath, 
+        duration_ms: dur, 
+        exit_code: code,
+        stdout_len: out.length,
+        stderr_len: err.length
+      });
+      
+      if (out) {
+        log.info('Semgrep async stdout preview', { 
+          first_500_chars: out.substring(0, 500),
+          total_length: out.length 
+        });
+      }
+      
+      try { 
+        const result = JSON.parse(out || '{}');
+        log.info('Semgrep async JSON parsed successfully', { 
+          results_count: result?.results?.length || 0,
+          errors_count: result?.errors?.length || 0,
+          has_results: Boolean(result?.results?.length)
+        });
+        
+        if (result?.results?.length > 0) {

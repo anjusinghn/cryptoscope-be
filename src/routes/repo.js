@@ -314,3 +314,25 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
       log.warn('enrich (sse) failed', { versionId, error: String(err?.message || err) });
     });
 
+    if (!cancelled) {
+      const response = buildAnalysisResult(scan);
+      response.versionId = versionId;
+      const rootName = path.basename(scanRoot);
+      response.repo = { owner: parsed.owner, repo: parsed.repo, ref: parsed.ref || null, root: rootName, versionId, id };
+      send('done', response);
+      // Small delay before closing to ensure event is received
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  } catch (err) {
+    log.error('api/scan-repo-sse error', { error: String(err?.message || err) });
+    try {
+      send('error', { message: 'Failed to scan repository.' });
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch {}
+  } finally {
+    try { if (heartbeat) clearInterval(heartbeat); } catch {}
+    res.end();
+  }
+});
+
+module.exports = router;
