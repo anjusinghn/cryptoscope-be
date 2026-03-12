@@ -314,3 +314,25 @@ rules:
     severity: ERROR
     metadata:
       category: mode
+      recommendation: Use a random IV and prefer GCM (AEAD).
+    pattern-either:
+      - pattern: new IvParameterSpec(new byte[$N])
+      - pattern: new javax.crypto.spec.IvParameterSpec(new byte[$N])
+
+  - id: cryptoscope.java.random.insecure
+    languages: [java]
+    message: Non-cryptographic RNG detected (Random/Math.random/ThreadLocalRandom).
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Use java.security.SecureRandom.
+    pattern-either:
+      - pattern: new Random(...)
+      - pattern: new java.util.Random(...)
+      - pattern: Math.random(...)
+      - pattern: java.lang.Math.random(...)
+      - pattern: ThreadLocalRandom.current().nextBoolean(...)
+      - pattern: ThreadLocalRandom.current().nextBytes(...)
+      - pattern: ThreadLocalRandom.current().nextDouble(...)
+      - pattern: ThreadLocalRandom.current().nextFloat(...)
+      - pattern: ThreadLocalRandom.current().nextGaussian(...)
