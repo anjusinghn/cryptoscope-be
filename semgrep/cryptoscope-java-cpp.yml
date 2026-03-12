@@ -291,3 +291,26 @@ rules:
                   java.security.KeyPairGenerator $GEN = java.security.KeyPairGenerator.getInstance("RSA");
           - patterns:
               - pattern: $GEN.initialize($BITS, ...)
+              - pattern-inside: |
+                  java.security.KeyPairGenerator $GEN = java.security.KeyPairGenerator.getInstance("RSA");
+      - metavariable-comparison:
+          metavariable: BITS
+          comparison: BITS < 2048
+
+  - id: cryptoscope.java.keypair.dsa
+    languages: [java]
+    message: DSA keypair generation detected (legacy algorithm).
+    severity: WARNING
+    metadata:
+      category: keygen
+      recommendation: Prefer Ed25519/Ed448 or ECDSA with modern curves.
+    pattern-either:
+      - pattern: KeyPairGenerator.getInstance("DSA")
+      - pattern: java.security.KeyPairGenerator.getInstance("DSA")
+
+  - id: cryptoscope.java.aes.cbc.zeroiv
+    languages: [java]
+    message: Zero-initialized IV via IvParameterSpec(new byte[n]).
+    severity: ERROR
+    metadata:
+      category: mode
