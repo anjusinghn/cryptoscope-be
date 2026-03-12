@@ -291,3 +291,26 @@ router.get('/api/scan-repo-sse', cors(corsOptions), async (req, res) => {
     const scan = await scanWorkspace({
       files: files.map((file) => ({ path: file.path, content: file.content })),
       versionId,
+      sourceType: 'github',
+      sourceLocator: url,
+      meta: { repo: meta },
+      concurrency: Number.isFinite(concurrency) && concurrency > 0 ? concurrency : DEFAULT_CONCURRENCY,
+      skipIndexing: INDEXING_DISABLED,
+      onFile: async ({ file, error }) => {
+        if (cancelled) return;
+        if (error) {
+          send('error', { message: `Error scanning file: ${file?.path}` });
+        } else if (file && !INDEXING_DISABLED) {
+          send('indexing', { message: `Indexing file: ${file.path}` });
+        }
+      },
+      onProgress: async ({ done, total }) => {
+        if (!cancelled) send('scanning', { message: `Scanning files...`, done, total });
+      },
+    });
+
+    send('enriching', { message: 'Enriching findings...' });
+    enrichFindingsForVersion(versionId).catch((err) => {
+      log.warn('enrich (sse) failed', { versionId, error: String(err?.message || err) });
+    });
+
