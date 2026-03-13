@@ -299,3 +299,24 @@ function topSimilarChunks(chunks, queryVec, limit = 3) {
     .slice(0, limit)
     .map((item) => item.chunk);
 }
+
+function findChunkForLine(chunks, line) {
+  if (!Array.isArray(chunks)) return null;
+  return chunks.find((c) => typeof line === 'number' && line >= (c.startLine ?? c.start_line ?? 0) && line <= (c.endLine ?? c.end_line ?? Infinity)) || null;
+}
+
+async function enrichFindingsInMemory({ findings, chunks, path = 'snippet', versionId = 'snippet' }) {
+  if (!Array.isArray(findings) || findings.length === 0) return [];
+  const model = await getGroqModel();
+  const items = [];
+  const batchSize = Math.min(DEFAULT_BATCH, findings.length);
+  for (const finding of findings) {
+    const primary = findChunkForLine(chunks, finding.line) || chunks?.[0];
+    let contextChunks = primary ? [primary] : [];
+    let queryVec = null;
+    const queryText = `query: ${finding.description || ''} ${finding.match || ''}`.trim();
+    if (queryText.length > 6) {
+      try {
+        const [vec] = await embedTexts([queryText]);
+        if (vec && vec.length) queryVec = vec;
+      } catch (err) {
