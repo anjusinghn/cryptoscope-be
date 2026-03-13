@@ -320,3 +320,24 @@ async function enrichFindingsInMemory({ findings, chunks, path = 'snippet', vers
         const [vec] = await embedTexts([queryText]);
         if (vec && vec.length) queryVec = vec;
       } catch (err) {
+        log.warn('embed (memory) failed', { error: String(err?.message || err) });
+      }
+    }
+    if (queryVec && Array.isArray(chunks) && chunks.some((c) => Array.isArray(c.embedding) && c.embedding.length)) {
+      const related = topSimilarChunks(chunks, queryVec, 3);
+      contextChunks = dedupeChunks(primary, related);
+    }
+    const context = buildContext(contextChunks);
+    items.push({ finding: { ...finding, path }, context });
+  }
+
+  const outputs = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const slice = items.slice(i, i + batchSize);
+    const enriched = await enrichBatch({ model, versionId, items: slice });
+    outputs.push(...enriched);
+  }
+  return outputs;
+}
+
+module.exports = { enrichFindingsForVersion, enrichFindingsInMemory, heuristicEnrichment };
