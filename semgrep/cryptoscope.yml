@@ -342,3 +342,26 @@ rules:
           metavariable: ALGO
           regex: "(?i)^[\"']?NONEwith(?:RSA|ECDSA|DSA)[\"']?$"
 
+  - id: cryptoscope.java.signature.modern
+    languages: [java]
+    message: Modern signature algorithm detected (Ed25519/Ed448).
+    severity: INFO
+    metadata:
+      category: signature
+    patterns:
+      - pattern-either:
+          - pattern: Signature.getInstance($ALGO)
+          - pattern: java.security.Signature.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?Ed(?:25519|448)[\"']?$"
+
+  - id: cryptoscope.java.aes.ecb
+    languages: [java]
+    message: AES/ECB mode detected (insecure).
+    severity: ERROR
+    metadata:
+      category: mode
+      recommendation: "Use GCM: Cipher.getInstance(\"AES/GCM/NoPadding\")."
+    patterns:
+      - pattern-either:

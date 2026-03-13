@@ -337,3 +337,26 @@ function runSemgrepAsync(targetPath) {
         });
         
         if (result?.results?.length > 0) {
+          log.info('Semgrep async findings summary', {
+            total_findings: result.results.length,
+            rule_ids: [...new Set(result.results.map(r => r.check_id))],
+            severities: [...new Set(result.results.map(r => r.extra?.severity || 'unknown'))]
+          });
+        }
+        
+        resolve(result); 
+      }
+      catch (e) { 
+        log.error('Semgrep async JSON parse failed', { 
+          error: e.message, 
+          stdout_preview: out.substring(0, 1000),
+          stderr: err || 'none'
+        });
+        reject(new Error('Semgrep failed: ' + (err || e.message))); 
+      }
+    });
+  });
+}
+
+function scanWithSemgrep(code, filename = 'snippet') {
+  const truncated = String(code).length > MAX_CHARS ? String(code).slice(0, MAX_CHARS) : String(code);
