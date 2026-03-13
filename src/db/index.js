@@ -298,3 +298,24 @@ async function searchChunksByVector(versionId, vectorLiteral, limit = 5) {
   }
   ranked.sort((a, b) => (a.distance || 0) - (b.distance || 0));
   return ranked.slice(0, limit);
+}
+
+async function updateFindingsEnrichment(updates) {
+  if (!Array.isArray(updates) || updates.length === 0) return;
+  const grouped = new Map();
+  for (const item of updates) {
+    if (!item || !item.id) continue;
+    const [versionId] = item.id.split('::', 1);
+    if (!versionId) continue;
+    if (!grouped.has(versionId)) grouped.set(versionId, []);
+    grouped.get(versionId).push(item);
+  }
+  const now = new Date().toISOString();
+  for (const [versionId, list] of grouped.entries()) {
+    const payload = await readScanPayload(versionId);
+    if (!payload) continue;
+    let mutated = false;
+    for (const item of list) {
+      for (const file of payload.files || []) {
+        const finding = (file.findings || []).find((f) => f.id === item.id);
+        if (finding) {
