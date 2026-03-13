@@ -336,3 +336,26 @@ rules:
       - pattern: ThreadLocalRandom.current().nextDouble(...)
       - pattern: ThreadLocalRandom.current().nextFloat(...)
       - pattern: ThreadLocalRandom.current().nextGaussian(...)
+      - pattern: ThreadLocalRandom.current().nextInt(...)
+      - pattern: ThreadLocalRandom.current().nextLong(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextBoolean(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextBytes(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextDouble(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextFloat(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextGaussian(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextInt(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextLong(...)
+      - pattern: new SplittableRandom(...)
+      - pattern: new java.util.SplittableRandom(...)
+
+  - id: cryptoscope.java.random.sha1prng
+    languages: [java]
+    message: SecureRandom with SHA1PRNG detected (legacy provider).
+    severity: WARNING
+    metadata:
+      category: random
+      recommendation: Prefer default SecureRandom provider or SecureRandom.getInstanceStrong().
+    patterns:
+      - pattern-either:
+          - pattern: SecureRandom.getInstance($ALGO)
+          - pattern: SecureRandom.getInstance($ALGO, ...)
