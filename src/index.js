@@ -306,3 +306,25 @@ async function runWorkspaceScan({ files, versionId, sourceType, sourceLocator, m
 // moved to routes/upload.js
 
 // moved to routes/llm.js
+
+// moved to routes/files.js
+
+// moved to routes/files.js
+
+// Bind to 0.0.0.0 in production/container environments so Docker port mapping works
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+app.listen(PORT, HOST, () => {
+  log.info(`cryptoscope backend listening on http://${HOST}:${PORT}`);
+  const provider = (process.env.SCANNER || 'manual').toLowerCase();
+  log.info('scanner provider', { provider });
+  if (provider === 'semgrep') {
+    try {
+      const v = spawnSync('semgrep', ['--version'], { encoding: 'utf8' });
+      if (v.status === 0) log.info('semgrep --version', { stdout: (v.stdout || '').trim() });
+      else log.warn('semgrep --version failed', { code: v.status, stderr: (v.stderr || '').trim() });
+    } catch (e) {
+      log.warn('semgrep not available', { error: String(e?.message || e) });
+    }
+  }
+});
