@@ -360,3 +360,25 @@ function runSemgrepAsync(targetPath) {
 
 function scanWithSemgrep(code, filename = 'snippet') {
   const truncated = String(code).length > MAX_CHARS ? String(code).slice(0, MAX_CHARS) : String(code);
+  const language = detectLanguage(filename, truncated);
+  
+  log.info('scanWithSemgrep start', { 
+    filename, 
+    language, 
+    size: String(truncated).length,
+    original_size: String(code).length,
+    truncated: String(code).length > MAX_CHARS
+  });
+  
+  if (!ALLOWED.has(language)) {
+    log.warn('Language not supported', { filename, language, supported: Array.from(ALLOWED) });
+    return {
+      filename,
+      language,
+      summary: { total: 0, byCategory: {}, bySeverity: {} },
+      findings: [],
+      lines: String(truncated).split(/\r?\n/).length,
+      truncated: String(code).length > MAX_CHARS,
+      generatedAt: new Date().toISOString(),
+      unsupported: true,
+      message: 'Language not supported. Supported: JS/TS, C/C++, Java.'
