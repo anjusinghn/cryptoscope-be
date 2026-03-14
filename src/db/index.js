@@ -319,3 +319,24 @@ async function updateFindingsEnrichment(updates) {
       for (const file of payload.files || []) {
         const finding = (file.findings || []).find((f) => f.id === item.id);
         if (finding) {
+          finding.enrichment = item.enrichment || null;
+          mutated = true;
+        }
+      }
+    }
+    if (mutated) {
+      if (payload.version) payload.version.updated_at = now;
+      payload.summary = payload.version?.summary || payload.summary;
+      await writeScanPayload(versionId, payload);
+    }
+  }
+}
+
+module.exports = {
+  initDb,
+  storeScanResult,
+  loadScanResult,
+  searchChunksByVector,
+  toVectorLiteral,
+  updateFindingsEnrichment,
+};
