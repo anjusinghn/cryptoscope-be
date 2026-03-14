@@ -405,3 +405,26 @@ function scanWithSemgrep(code, filename = 'snippet') {
       });
       return res;
     } catch (e) {
+      log.error('Semgrep sync error, attempting fallback', { 
+        filename, 
+        language, 
+        error: String(e && e.message ? e.message : e),
+        stack: e?.stack
+      });
+      try {
+        log.info('Attempting manual scan fallback', { filename, language });
+        const { scanManual } = require('./manual');
+        const fallback = scanManual(truncated, filename);
+        log.info('Manual scan fallback successful', { 
+          filename, 
+          findings: fallback.summary.total,
+          provider: 'manual'
+        });
+        return { ...fallback, provider: 'manual', note: 'semgrep_failed_fallback' };
+      } catch (inner) {
+        log.error('Both Semgrep and manual scan failed', { 
+          filename, 
+          language,
+          semgrep_error: String(e && e.message ? e.message : e),
+          manual_error: String(inner && inner.message ? inner.message : inner)
+        });
