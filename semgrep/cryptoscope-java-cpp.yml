@@ -426,3 +426,26 @@ rules:
       - pattern: javax.crypto.SecretKeyFactory.getInstance(...)
       - pattern: KeyFactory.getInstance(...)
       - pattern: java.security.KeyFactory.getInstance(...)
+      - pattern: KeyAgreement.getInstance(...)
+      - pattern: javax.crypto.KeyAgreement.getInstance(...)
+
+  - id: cryptoscope.java.cipher.des
+    languages: [java]
+    message: DES/3DES detected (insecure cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead of DES/3DES.
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?(?:DES(?:/[^\"']+){0,2}|DESede(?:/[^\"']+){0,2})[\"']?$"
+
+  - id: cryptoscope.java.cipher.rc4
+    languages: [java]
+    message: RC4/ARCFOUR detected (insecure stream cipher).
+    severity: ERROR
+    metadata:
