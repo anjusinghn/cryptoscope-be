@@ -404,3 +404,25 @@ rules:
 
   # Additional Java coverage
   - id: cryptoscope.java.crypto.any
+    languages: [java]
+    message: Crypto API usage detected (generic match).
+    severity: INFO
+    metadata:
+      category: primitive
+    pattern-either:
+      - pattern: MessageDigest.getInstance(...)
+      - pattern: java.security.MessageDigest.getInstance(...)
+      - pattern: Mac.getInstance(...)
+      - pattern: javax.crypto.Mac.getInstance(...)
+      - pattern: Cipher.getInstance(...)
+      - pattern: javax.crypto.Cipher.getInstance(...)
+      - pattern: Signature.getInstance(...)
+      - pattern: java.security.Signature.getInstance(...)
+      - pattern: KeyGenerator.getInstance(...)
+      - pattern: javax.crypto.KeyGenerator.getInstance(...)
+      - pattern: KeyPairGenerator.getInstance(...)
+      - pattern: java.security.KeyPairGenerator.getInstance(...)
+      - pattern: SecretKeyFactory.getInstance(...)
+      - pattern: javax.crypto.SecretKeyFactory.getInstance(...)
+      - pattern: KeyFactory.getInstance(...)
+      - pattern: java.security.KeyFactory.getInstance(...)
