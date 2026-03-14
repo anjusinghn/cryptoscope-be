@@ -381,3 +381,26 @@ rules:
               - pattern-inside: |
                   SecureRandom $SR = ...;
           - patterns:
+              - pattern: $SR.setSeed($SEED)
+              - pattern-inside: |
+                  java.security.SecureRandom $SR = ...;
+      - metavariable-pattern:
+          metavariable: SEED
+          pattern-either:
+            - pattern: new byte[$N]
+            - pattern: new byte[] { ... }
+
+  - id: cryptoscope.java.securerandom
+    languages: [java]
+    message: SecureRandom usage detected (CSPRNG).
+    severity: INFO
+    metadata:
+      category: random
+    pattern-either:
+      - pattern: new SecureRandom(...)
+      - pattern: SecureRandom.getInstance(...)
+      - pattern: new java.security.SecureRandom(...)
+      - pattern: java.security.SecureRandom.getInstance(...)
+
+  # Additional Java coverage
+  - id: cryptoscope.java.crypto.any
