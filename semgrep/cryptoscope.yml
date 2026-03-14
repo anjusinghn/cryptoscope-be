@@ -365,3 +365,26 @@ rules:
       recommendation: "Use GCM: Cipher.getInstance(\"AES/GCM/NoPadding\")."
     patterns:
       - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?AES/ECB/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.aes.cbc
+    languages: [java]
+    message: AES/CBC detected; ensure authentication (e.g., HMAC) and random IV.
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Prefer GCM (AEAD) when possible.
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?AES/CBC/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.cipher.gcm
+    languages: [java]
