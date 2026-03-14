@@ -382,3 +382,26 @@ function scanWithSemgrep(code, filename = 'snippet') {
       generatedAt: new Date().toISOString(),
       unsupported: true,
       message: 'Language not supported. Supported: JS/TS, C/C++, Java.'
+    };
+  }
+  
+  log.info('Creating temporary file for Semgrep scan', { filename, language });
+  const { tmpdir, file } = writeTempFile(truncated, filename, language);
+  
+  log.info('Temporary file created', { tmpdir, file });
+  
+  try {
+    try {
+      log.info('Running Semgrep scan on temporary file', { file, filename, language });
+      const json = runSemgrepSync(file);
+      log.info('Semgrep scan completed, transforming results', { file, filename });
+      const res = transformSemgrep(json, filename, language, truncated);
+      log.info('scanWithSemgrep result', { 
+        filename, 
+        language, 
+        findings: res.summary.total,
+        by_severity: res.summary.bySeverity,
+        by_category: res.summary.byCategory
+      });
+      return res;
+    } catch (e) {
