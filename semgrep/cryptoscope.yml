@@ -456,3 +456,26 @@ rules:
   - id: cryptoscope.java.mac.generic
     languages: [java]
     message: Mac primitive usage detected.
+    severity: INFO
+    metadata:
+      category: mac
+    pattern-either:
+      - pattern: Mac.getInstance(...)
+      - pattern: javax.crypto.Mac.getInstance(...)
+
+  - id: cryptoscope.java.kdf.pbkdf2.sha256
+    languages: [java]
+    message: PBKDF2 with HmacSHA256 usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+      - pattern: javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+
+  - id: cryptoscope.java.keygen.aes
+    languages: [java]
+    message: Symmetric key generation (AES) detected.
+    severity: INFO
+    metadata:
+      category: keygen
