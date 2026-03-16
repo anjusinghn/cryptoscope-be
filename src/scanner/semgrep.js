@@ -428,3 +428,25 @@ function scanWithSemgrep(code, filename = 'snippet') {
           semgrep_error: String(e && e.message ? e.message : e),
           manual_error: String(inner && inner.message ? inner.message : inner)
         });
+        return {
+          filename,
+          language,
+          summary: { total: 0, byCategory: {}, bySeverity: {} },
+          findings: [],
+          lines: String(truncated).split(/\r?\n/).length,
+          truncated: String(code).length > MAX_CHARS,
+          generatedAt: new Date().toISOString(),
+          error: String(e && e.message ? e.message : e),
+        };
+      }
+    }
+  } finally {
+    log.debug('Cleaning up temporary directory', { tmpdir });
+    try { 
+      fs.rmSync(tmpdir, { recursive: true, force: true }); 
+      log.debug('Temporary directory cleaned up successfully', { tmpdir });
+    } catch (cleanupError) {
+      log.warn('Failed to clean up temporary directory', { tmpdir, error: cleanupError.message });
+    }
+  }
+}
