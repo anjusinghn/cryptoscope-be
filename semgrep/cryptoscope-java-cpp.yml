@@ -449,3 +449,25 @@ rules:
     message: RC4/ARCFOUR detected (insecure stream cipher).
     severity: ERROR
     metadata:
+      category: cipher
+      recommendation: Replace RC4 with ChaCha20 or AES-GCM.
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?(?:RC4|ARCFOUR)(?:/[^\"']+){0,2}[\"']?$"
+
+  - id: cryptoscope.java.cipher.rc2
+    languages: [java]
+    message: RC2 detected (legacy block cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead.
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
