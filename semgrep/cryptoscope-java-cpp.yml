@@ -471,3 +471,26 @@ rules:
           - pattern: Cipher.getInstance($ALGO)
           - pattern: javax.crypto.Cipher.getInstance($ALGO)
       - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?RC2(?:/[^\"']+){0,2}[\"']?$"
+
+  - id: cryptoscope.java.aes.ctr
+    languages: [java]
+    message: AES/CTR detected; ensure unique nonce and add authentication (e.g., HMAC).
+    severity: WARNING
+    metadata:
+      category: mode
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?AES/CTR/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.aes.cfb_ofb
+    languages: [java]
+    message: AES/CFB or AES/OFB detected; consider AEAD instead.
+    severity: WARNING
+    metadata:
+      category: mode
