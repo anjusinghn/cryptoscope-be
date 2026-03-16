@@ -434,3 +434,25 @@ rules:
     metadata:
       category: cipher
       recommendation: Prefer OAEP with SHA-256+, e.g., "RSA/ECB/OAEPWithSHA-256AndMGF1Padding".
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($TRANSFORM)
+          - pattern: javax.crypto.Cipher.getInstance($TRANSFORM)
+      - metavariable-regex:
+          metavariable: TRANSFORM
+          regex: "(?i)^[\"']?RSA/ECB/OAEPWithSHA-?1AndMGF1Padding[\"']?$"
+
+  - id: cryptoscope.java.aes.unspecified
+    languages: [java]
+    message: AES without mode/padding specified (provider default; often ECB).
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Specify an AEAD mode explicitly, e.g., "AES/GCM/NoPadding".
+    pattern-either:
+      - pattern: Cipher.getInstance("AES")
+      - pattern: javax.crypto.Cipher.getInstance("AES")
+
+  - id: cryptoscope.java.mac.generic
+    languages: [java]
+    message: Mac primitive usage detected.
