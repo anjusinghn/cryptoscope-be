@@ -473,3 +473,25 @@ async function scanWithSemgrepAsync(code, filename = 'snippet') {
       truncated: String(code).length > MAX_CHARS,
       unsupported: true,
       message: 'Language not supported. Supported: JS/TS, C/C++, Java.'
+    };
+  }
+  
+  log.info('Creating temporary file for Semgrep async scan', { filename, language });
+  const { tmpdir, file } = writeTempFile(truncated, filename, language);
+  
+  log.info('Temporary file created for async scan', { tmpdir, file });
+  
+  try {
+    try {
+      log.info('Running Semgrep async scan on temporary file', { file, filename, language });
+      const json = await runSemgrepAsync(file);
+      log.info('Semgrep async scan completed, transforming results', { file, filename });
+      const res = transformSemgrep(json, filename, language, truncated);
+      log.info('Semgrep async scan result', { 
+        filename, 
+        findings: res.summary.total,
+        by_severity: res.summary.bySeverity,
+        by_category: res.summary.byCategory
+      });
+      return res;
+    } catch (e) {
