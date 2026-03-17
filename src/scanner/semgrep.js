@@ -495,3 +495,26 @@ async function scanWithSemgrepAsync(code, filename = 'snippet') {
       });
       return res;
     } catch (e) {
+      log.error('Semgrep async error, attempting fallback', { 
+        filename, 
+        language, 
+        error: String(e && e.message ? e.message : e),
+        stack: e?.stack
+      });
+      try {
+        log.info('Attempting manual scan fallback for async', { filename, language });
+        const { scanManual } = require('./manual');
+        const fallback = scanManual(truncated, filename);
+        log.info('Manual scan fallback successful for async', { 
+          filename, 
+          findings: fallback.summary.total,
+          provider: 'manual'
+        });
+        return { ...fallback, provider: 'manual', note: 'semgrep_failed_fallback' };
+      } catch (inner) {
+        log.error('Both Semgrep async and manual scan failed', { 
+          filename, 
+          language,
+          semgrep_error: String(e && e.message ? e.message : e),
+          manual_error: String(inner && inner.message ? inner.message : inner)
+        });
