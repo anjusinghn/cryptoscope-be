@@ -494,3 +494,25 @@ rules:
     severity: WARNING
     metadata:
       category: mode
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?AES/(?:CFB|OFB)/[^\"']+[\"']?$"
+
+  - id: cryptoscope.java.kdf.pbkdf2.sha1
+    languages: [java]
+    message: PBKDF2WithHmacSHA1 detected.
+    severity: WARNING
+    metadata:
+      category: kdf
+      recommendation: Prefer PBKDF2WithHmacSHA256/512 or Argon2/scrypt.
+    pattern-either:
+      - pattern: SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+      - pattern: javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+
+  - id: cryptoscope.java.mac.hmacmd5
+    languages: [java]
+    message: HmacMD5 detected (weak MAC).
