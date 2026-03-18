@@ -548,3 +548,26 @@ rules:
       - pattern: new IvParameterSpec(new byte[$N])
       - pattern: new javax.crypto.spec.IvParameterSpec(new byte[$N])
 
+  - id: cryptoscope.java.random.insecure
+    languages: [java]
+    message: Non-cryptographic RNG detected (Random/Math.random/ThreadLocalRandom).
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Use java.security.SecureRandom.
+    pattern-either:
+      - pattern: new Random(...)
+      - pattern: new java.util.Random(...)
+      - pattern: Math.random(...)
+      - pattern: java.lang.Math.random(...)
+      - pattern: ThreadLocalRandom.current().nextBoolean(...)
+      - pattern: ThreadLocalRandom.current().nextBytes(...)
+      - pattern: ThreadLocalRandom.current().nextDouble(...)
+      - pattern: ThreadLocalRandom.current().nextFloat(...)
+      - pattern: ThreadLocalRandom.current().nextGaussian(...)
+      - pattern: ThreadLocalRandom.current().nextInt(...)
+      - pattern: ThreadLocalRandom.current().nextLong(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextBoolean(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextBytes(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextDouble(...)
+      - pattern: java.util.concurrent.ThreadLocalRandom.current().nextFloat(...)
