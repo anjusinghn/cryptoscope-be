@@ -561,3 +561,26 @@ rules:
     message: Weak hash primitive detected (MD2/MD4/MD5/SHA1 family).
     severity: ERROR
     metadata:
+      category: hash
+      recommendation: Use SHA-256/512, SHA-3, or BLAKE2/3 instead.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\b(EVP_md[245]|MD[245](?:_(?:Init|Update|Final))?|MD[245]|CC_MD5|SHA1(?:_(?:Init|Update|Final))?|SHA1|EVP_sha1)\\b"
+
+  - id: cryptoscope.c.hash.strong
+    languages: [c, cpp]
+    message: Modern hash primitive detected (SHA-2/SHA-3/BLAKE2).
+    severity: INFO
+    metadata:
+      category: hash
+    pattern-either:
+      - pattern: EVP_sha256(...)
+      - pattern: EVP_sha256()
+      - pattern: EVP_sha384(...)
+      - pattern: EVP_sha384()
+      - pattern: EVP_sha512(...)
+      - pattern: EVP_sha512()
