@@ -539,3 +539,25 @@ rules:
 
   - id: cryptoscope.java.random.setseed.numeric
     languages: [java]
+    message: SecureRandom seeded with numeric literal.
+    severity: ERROR
+    metadata:
+      category: random
+    recommendation: Avoid manual static seeding; let SecureRandom self-seed.
+    patterns:
+      - patterns:
+          - pattern: $SR.setSeed($N)
+          - pattern-inside: |
+              SecureRandom $SR = ...;
+      - metavariable-regex:
+          metavariable: N
+          regex: "^(?:-?\d+L?)$"
+
+  # =====================
+  # C / C++ (OpenSSL, libc)
+  # =====================
+  - id: cryptoscope.c.hash.weak
+    languages: [c, cpp]
+    message: Weak hash primitive detected (MD2/MD4/MD5/SHA1 family).
+    severity: ERROR
+    metadata:
