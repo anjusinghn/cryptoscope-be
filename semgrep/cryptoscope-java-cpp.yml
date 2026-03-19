@@ -629,3 +629,25 @@ rules:
     severity: WARNING
     metadata:
       category: mode
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\bEVP_aes_[0-9]+_(?:ctr|cfb(?:1|8)?|ofb)\\b"
+
+  - id: cryptoscope.c.cipher.des
+    languages: [c, cpp]
+    message: DES/3DES usage detected (deprecated cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+    recommendation: Migrate to AES-GCM or ChaCha20-Poly1305.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\b(EVP_des(?:_ede3)?_(?:ecb|cbc)|DES_(?:ecb|cbc)_encrypt|DES_set_key(?:_unchecked)?)\\b"
