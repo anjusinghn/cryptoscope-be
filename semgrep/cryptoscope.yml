@@ -617,3 +617,26 @@ rules:
           metavariable: SEED
           pattern-either:
             - pattern: new byte[$N]
+            - pattern: new byte[] { ... }
+
+  - id: cryptoscope.java.securerandom
+    languages: [java]
+    message: SecureRandom usage detected (CSPRNG).
+    severity: INFO
+    metadata:
+      category: random
+    pattern-either:
+      - pattern: new SecureRandom(...)
+      - pattern: SecureRandom.getInstance(...)
+      - pattern: new java.security.SecureRandom(...)
+      - pattern: java.security.SecureRandom.getInstance(...)
+
+  # =====================
+  # C / C++ (OpenSSL, libc)
+  # =====================
+  - id: cryptoscope.c.hash.weak
+    languages: [c, cpp]
+    message: Weak hash primitive detected (MD2/MD4/MD5/SHA1 family).
+    severity: ERROR
+    metadata:
+      category: hash
