@@ -651,3 +651,26 @@ rules:
       - metavariable-regex:
           metavariable: FUNC
           regex: "\\b(EVP_des(?:_ede3)?_(?:ecb|cbc)|DES_(?:ecb|cbc)_encrypt|DES_set_key(?:_unchecked)?)\\b"
+
+  - id: cryptoscope.c.cipher.rc2
+    languages: [c, cpp]
+    message: RC2 usage detected (legacy cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\b(EVP_rc2(?:_cbc|_ecb)?|RC2_(?:cbc|ecb)_encrypt)\\b"
+
+  - id: cryptoscope.c.cipher.rc4
+    languages: [c, cpp]
+    message: RC4 stream cipher detected (insecure).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Replace RC4 with ChaCha20 or AES-GCM.
