@@ -662,3 +662,26 @@ rules:
       - pattern: EVP_sha384()
       - pattern: EVP_sha512(...)
       - pattern: EVP_sha512()
+      - pattern: EVP_sha3_256(...)
+      - pattern: EVP_sha3_256()
+      - pattern: EVP_sha3_512(...)
+      - pattern: EVP_sha3_512()
+      - pattern: EVP_blake2b512(...)
+      - pattern: EVP_blake2b512()
+      - pattern: EVP_blake2s256(...)
+      - pattern: EVP_blake2s256()
+
+  - id: cryptoscope.c.cipher.aes.ecb
+    languages: [c, cpp]
+    message: AES ECB usage detected.
+    severity: ERROR
+    metadata:
+      category: mode
+      recommendation: Prefer AEAD modes such as AES-GCM or ChaCha20-Poly1305.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\bEVP_aes_[0-9]+_ecb\\b"
