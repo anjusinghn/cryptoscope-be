@@ -594,3 +594,26 @@ rules:
           metavariable: ALGO
           regex: "(?i)^[\"']?SHA1PRNG[\"']?$"
 
+  - id: cryptoscope.java.random.seed.constant
+    languages: [java]
+    message: SecureRandom seeded with constant or zeroed byte array.
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Let SecureRandom self-seed or use os-provided entropy sources.
+    patterns:
+      - pattern-either:
+          - pattern: new SecureRandom($SEED)
+          - pattern: new java.security.SecureRandom($SEED)
+          - patterns:
+              - pattern: $SR.setSeed($SEED)
+              - pattern-inside: |
+                  SecureRandom $SR = ...;
+          - patterns:
+              - pattern: $SR.setSeed($SEED)
+              - pattern-inside: |
+                  java.security.SecureRandom $SR = ...;
+      - metavariable-pattern:
+          metavariable: SEED
+          pattern-either:
+            - pattern: new byte[$N]

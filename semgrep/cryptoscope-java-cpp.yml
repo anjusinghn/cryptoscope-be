@@ -606,3 +606,26 @@ rules:
           - pattern: $FUNC()
       - metavariable-regex:
           metavariable: FUNC
+          regex: "\\bEVP_aes_[0-9]+_ecb\\b"
+
+  - id: cryptoscope.c.cipher.aes.cbc
+    languages: [c, cpp]
+    message: AES CBC usage detected.
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Use AEAD modes like AES-GCM whenever possible.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\bEVP_aes_[0-9]+_cbc\\b"
+
+  - id: cryptoscope.c.cipher.aes.ctr_cfb_ofb
+    languages: [c, cpp]
+    message: AES in CTR/CFB/OFB detected; ensure nonce/IV safety and add authentication.
+    severity: WARNING
+    metadata:
+      category: mode
