@@ -741,3 +741,26 @@ rules:
     patterns:
       - pattern: EVP_PKEY_CTX_set_rsa_keygen_bits($CTX, $BITS)
       - metavariable-comparison:
+          metavariable: BITS
+          comparison: BITS < 2048
+
+  - id: cryptoscope.c.rsa.pkcs1v15.encrypt
+    languages: [c, cpp]
+    message: RSA PKCS#1 v1.5 encryption/decryption detected (legacy). Susceptible to padding oracles.
+    severity: WARNING
+    metadata:
+      category: cipher
+      recommendation: Use OAEP (RSA_PKCS1_OAEP_PADDING) for encryption.
+    pattern-either:
+      - pattern: RSA_public_encrypt($LEN, $IN, $OUT, $RSA, RSA_PKCS1_PADDING)
+      - pattern: RSA_private_decrypt($LEN, $IN, $OUT, $RSA, RSA_PKCS1_PADDING)
+
+  - id: cryptoscope.c.signature.modern
+    languages: [c, cpp]
+    message: Modern signature primitive detected (Ed25519/Ed448).
+    severity: INFO
+    metadata:
+      category: signature
+    pattern-either:
+      - pattern: EVP_PKEY_ED25519
+      - pattern: EVP_PKEY_ED448
