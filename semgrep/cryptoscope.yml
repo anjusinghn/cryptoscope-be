@@ -731,3 +731,26 @@ rules:
       - pattern: EVP_aes_128_ccm()
       - pattern: EVP_chacha20_poly1305(...)
       - pattern: EVP_chacha20_poly1305()
+
+  - id: cryptoscope.c.hmac.weak
+    languages: [c, cpp]
+    message: HMAC with weak digest detected (MD5/SHA1).
+    severity: ERROR
+    metadata:
+      category: mac
+      recommendation: Use HMAC with SHA-256/384/512 or BLAKE2.
+    patterns:
+      - pattern-either:
+          - pattern: HMAC(EVP_md5(), ...)
+          - pattern: HMAC(EVP_md5(), ..., ...)
+          - pattern: HMAC(EVP_sha1(), ...)
+          - pattern: HMAC(EVP_sha1(), ..., ...)
+          - pattern: HMAC_Init($CTX, ..., EVP_md5(), ...)
+          - pattern: HMAC_Init($CTX, ..., EVP_sha1(), ...)
+          - pattern: HMAC_Init_ex($CTX, ..., EVP_md5(), ...)
+          - pattern: HMAC_Init_ex($CTX, ..., EVP_sha1(), ...)
+
+  - id: cryptoscope.c.rsa.keygen.small
+    languages: [c, cpp]
+    message: RSA key size below 2048 bits detected.
+    severity: ERROR
