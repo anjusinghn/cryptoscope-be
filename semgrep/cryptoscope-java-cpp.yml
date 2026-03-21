@@ -719,3 +719,25 @@ rules:
   - id: cryptoscope.c.rsa.keygen.small
     languages: [c, cpp]
     message: RSA key size below 2048 bits detected.
+    severity: ERROR
+    metadata:
+      category: keygen
+      recommendation: Generate RSA keys with >= 2048 bits or migrate to ECC.
+    patterns:
+      - pattern-either:
+          - pattern: RSA_generate_key_ex($RSA, $BITS, ...)
+          - pattern: RSA_generate_key($BITS, ...)
+      - metavariable-comparison:
+          metavariable: BITS
+          comparison: BITS < 2048
+
+  - id: cryptoscope.c.rsa.keygen.ctx.small
+    languages: [c, cpp]
+    message: RSA keygen context configured with <2048 bits.
+    severity: ERROR
+    metadata:
+      category: keygen
+      recommendation: Configure RSA key generation for >= 2048 bits or use ECC.
+    patterns:
+      - pattern: EVP_PKEY_CTX_set_rsa_keygen_bits($CTX, $BITS)
+      - metavariable-comparison:
