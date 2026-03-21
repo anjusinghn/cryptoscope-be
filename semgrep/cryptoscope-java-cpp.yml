@@ -674,3 +674,25 @@ rules:
     metadata:
       category: cipher
       recommendation: Replace RC4 with ChaCha20 or AES-GCM.
+    patterns:
+      - pattern-either:
+          - pattern: $FUNC(...)
+          - pattern: $FUNC()
+      - metavariable-regex:
+          metavariable: FUNC
+          regex: "\\b(EVP_rc4|RC4_set_key|RC4)\\b"
+
+  - id: cryptoscope.c.cipher.aead
+    languages: [c, cpp]
+    message: AEAD cipher usage detected (AES-GCM/ChaCha20-Poly1305).
+    severity: INFO
+    metadata:
+      category: mode
+    pattern-either:
+      - pattern: EVP_aes_128_gcm(...)
+      - pattern: EVP_aes_128_gcm()
+      - pattern: EVP_aes_256_gcm(...)
+      - pattern: EVP_aes_256_gcm()
+      - pattern: EVP_aes_128_ccm(...)
+      - pattern: EVP_aes_128_ccm()
+      - pattern: EVP_chacha20_poly1305(...)
