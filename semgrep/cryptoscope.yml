@@ -823,3 +823,26 @@ rules:
       - pattern: random(...)
       - pattern: srandom(...)
       - pattern: drand48(...)
+      - pattern: srand48(...)
+      - pattern: lrand48(...)
+      - pattern: mrand48(...)
+      - pattern: std::rand(...)
+      - pattern: std::srand(...)
+
+  - id: cryptoscope.c.random.secure
+    languages: [c, cpp]
+    message: Cryptographically secure randomness detected.
+    severity: INFO
+    metadata:
+      category: random
+    pattern-either:
+      - pattern: RAND_bytes(...)
+      - pattern: RAND_priv_bytes(...)
+      - pattern: getrandom(...)
+      - pattern: getentropy(...)
+      - pattern: arc4random(...)
+      - pattern: arc4random_buf(...)
+      - pattern: randombytes_buf(...)
+      - pattern: randombytes_buf_deterministic(...)
+      - pattern: randombytes_uniform(...)
+
