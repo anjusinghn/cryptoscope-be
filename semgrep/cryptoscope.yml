@@ -777,3 +777,26 @@ rules:
       - metavariable-comparison:
           metavariable: BITS
           comparison: BITS < 2048
+
+  - id: cryptoscope.c.signature.modern
+    languages: [c, cpp]
+    message: Modern signature primitive detected (Ed25519/Ed448).
+    severity: INFO
+    metadata:
+      category: signature
+    pattern-either:
+      - pattern: EVP_PKEY_ED25519
+      - pattern: EVP_PKEY_ED448
+      - pattern: crypto_sign_ed25519_seed_keypair(...)
+      - pattern: crypto_sign_ed25519_keypair(...)
+
+  - id: cryptoscope.c.kdf.pbkdf2.sha1
+    languages: [c, cpp]
+    message: PBKDF2 with SHA-1 detected (PKCS5_PBKDF2_HMAC_SHA1).
+    severity: WARNING
+    metadata:
+      category: kdf
+      recommendation: Use PKCS5_PBKDF2_HMAC with SHA-256/512, scrypt, or Argon2.
+    pattern: PKCS5_PBKDF2_HMAC_SHA1(...)
+
+  - id: cryptoscope.c.kdf.pbkdf2.generic

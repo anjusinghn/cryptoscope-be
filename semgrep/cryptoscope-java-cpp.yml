@@ -764,3 +764,25 @@ rules:
     pattern-either:
       - pattern: EVP_PKEY_ED25519
       - pattern: EVP_PKEY_ED448
+      - pattern: crypto_sign_ed25519_seed_keypair(...)
+      - pattern: crypto_sign_ed25519_keypair(...)
+
+  - id: cryptoscope.c.kdf.pbkdf2.sha1
+    languages: [c, cpp]
+    message: PBKDF2 with SHA-1 detected (PKCS5_PBKDF2_HMAC_SHA1).
+    severity: WARNING
+    metadata:
+      category: kdf
+    recommendation: Use PKCS5_PBKDF2_HMAC with SHA-256/512, scrypt, or Argon2.
+    pattern: PKCS5_PBKDF2_HMAC_SHA1(...)
+
+  - id: cryptoscope.c.kdf.pbkdf2.generic
+    languages: [c, cpp]
+    message: PBKDF2 usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: PKCS5_PBKDF2_HMAC(...)
+
+  - id: cryptoscope.c.random.insecure
