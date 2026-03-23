@@ -809,3 +809,25 @@ rules:
   - id: cryptoscope.c.random.secure
     languages: [c, cpp]
     message: Cryptographically secure randomness detected.
+    severity: INFO
+    metadata:
+      category: random
+    pattern-either:
+      - pattern: RAND_bytes(...)
+      - pattern: RAND_priv_bytes(...)
+      - pattern: getrandom(...)
+      - pattern: getentropy(...)
+      - pattern: arc4random(...)
+      - pattern: arc4random_buf(...)
+      - pattern: randombytes_buf(...)
+      - pattern: randombytes_buf_deterministic(...)
+      - pattern: randombytes_uniform(...)
+
+  - id: cryptoscope.c.random.pseudo
+    languages: [c, cpp]
+    message: RAND_pseudo_bytes detected (deprecated / not secure).
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Use RAND_bytes or operating-system CSPRNG APIs instead.
+    pattern: RAND_pseudo_bytes(...)
