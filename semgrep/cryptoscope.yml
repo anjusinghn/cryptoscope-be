@@ -800,3 +800,26 @@ rules:
     pattern: PKCS5_PBKDF2_HMAC_SHA1(...)
 
   - id: cryptoscope.c.kdf.pbkdf2.generic
+    languages: [c, cpp]
+    message: PBKDF2 usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: PKCS5_PBKDF2_HMAC(...)
+
+  - id: cryptoscope.c.random.insecure
+    languages: [c, cpp]
+    message: Non-cryptographic RNG detected (rand/drand48/etc).
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Use RAND_bytes, getrandom, or arc4random_buf for CSPRNG needs.
+    pattern-either:
+      - pattern: rand(...)
+      - pattern: srand(...)
+      - pattern: ::rand(...)
+      - pattern: ::srand(...)
+      - pattern: random(...)
+      - pattern: srandom(...)
+      - pattern: drand48(...)
