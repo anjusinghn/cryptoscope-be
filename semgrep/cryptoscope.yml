@@ -869,3 +869,25 @@ rules:
     severity: INFO
     metadata:
       category: signature
+    pattern-either:
+      - pattern: $C.createSign($ALGO)
+      - pattern: createSign($ALGO)
+      - pattern: $C.createVerify($ALGO)
+      - pattern: createVerify($ALGO)
+
+  - id: cryptoscope.node.signature.weak
+    languages: [javascript, typescript]
+    message: Weak signature hash algorithm detected (MD5/SHA-1).
+    severity: ERROR
+    metadata:
+      category: signature
+      recommendation: Use SHA-256/384+ (e.g., RSA-PSS with SHA-256 or ECDSA with SHA-256).
+    patterns:
+      - pattern-either:
+          - pattern: $C.createSign($ALGO)
+          - pattern: createSign($ALGO)
+          - pattern: $C.createVerify($ALGO)
+          - pattern: createVerify($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'](?:md5|sha-?1)(?:$|[^\"']*)[\"']$"
