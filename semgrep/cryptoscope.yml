@@ -1075,3 +1075,26 @@ rules:
       - pattern: createECDH(...)
 
   - id: cryptoscope.node.random.randomint
+    languages: [javascript, typescript]
+    message: crypto.randomInt usage detected (CSPRNG).
+    severity: INFO
+    metadata:
+      category: random
+    pattern: crypto.randomInt(...)
+
+  - id: cryptoscope.webcrypto.generic
+    languages: [javascript, typescript]
+    message: WebCrypto SubtleCrypto primitive usage detected.
+    severity: INFO
+    metadata:
+      category: primitive
+    pattern-either:
+      - pattern: crypto.webcrypto.subtle.$FN(...)
+      - pattern: window.crypto.subtle.$FN(...)
+    metavariable-regex:
+      metavariable: FN
+      regex: "^(digest|deriveKey|deriveBits|encrypt|decrypt|sign|verify|generateKey|importKey|exportKey|wrapKey|unwrapKey)$"
+
+  - id: cryptoscope.webcrypto.digest.sha1
+    languages: [javascript, typescript]
+    message: WebCrypto SHA-1 digest detected.
