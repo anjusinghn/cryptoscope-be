@@ -937,3 +937,49 @@ rules:
     languages: [javascript, typescript]
     message: scrypt cost parameter N appears low (< 16384).
     severity: WARNING
+    metadata:
+      category: kdf
+      recommendation: Use at least N=16384 (2^14), r=8, p=1 or higher per security/performance tradeoffs.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.scrypt($P, $S, $L, { N: $N, ... }, ...)
+          - pattern: scrypt($P, $S, $L, { N: $N, ... }, ...)
+          - pattern: crypto.scryptSync($P, $S, $L, { N: $N, ... })
+          - pattern: scryptSync($P, $S, $L, { N: $N, ... })
+      - metavariable-comparison:
+          metavariable: N
+          comparison: N < 16384
+
+  - id: cryptoscope.node.kdf.hkdf.generic
+    languages: [javascript, typescript]
+    message: HKDF usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: crypto.hkdf(...)
+      - pattern: hkdf(...)
+      - pattern: crypto.hkdfSync(...)
+      - pattern: hkdfSync(...)
+
+  - id: cryptoscope.node.kdf.hkdf.sha1
+    languages: [javascript, typescript]
+    message: HKDF with SHA-1 detected (consider SHA-256+).
+    severity: WARNING
+    metadata:
+      category: kdf
+    patterns:
+      - pattern-either:
+          - pattern: crypto.hkdf($ALG, ...)
+          - pattern: hkdf($ALG, ...)
+          - pattern: crypto.hkdfSync($ALG, ...)
+          - pattern: hkdfSync($ALG, ...)
+      - metavariable-regex:
+          metavariable: ALG
+          regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.node.kdf.pbkdf2.sha1
+    languages: [javascript, typescript]
+    message: PBKDF2 using SHA-1 detected.
+    severity: WARNING
+    metadata:
