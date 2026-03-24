@@ -983,3 +983,26 @@ rules:
     message: PBKDF2 using SHA-1 detected.
     severity: WARNING
     metadata:
+      category: kdf
+      recommendation: Prefer PBKDF2 with SHA-256/512 or Argon2/scrypt.
+    patterns:
+      - pattern-either:
+          - pattern: $C.pbkdf2($P, $S, $N, $L, $ALG, ...)
+          - pattern: pbkdf2($P, $S, $N, $L, $ALG, ...)
+          - pattern: $C.pbkdf2Sync($P, $S, $N, $L, $ALG)
+          - pattern: pbkdf2Sync($P, $S, $N, $L, $ALG)
+      - metavariable-regex:
+          metavariable: ALG
+          regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.node.cipher.legacy
+    languages: [javascript, typescript]
+    message: Legacy cipher detected (DES/3DES/RC2/RC4).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, ...)
+          - pattern: createCipheriv($ALGO, ...)
