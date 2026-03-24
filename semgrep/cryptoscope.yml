@@ -891,3 +891,26 @@ rules:
       - metavariable-regex:
           metavariable: ALGO
           regex: "(?i)^[\"'](?:md5|sha-?1)(?:$|[^\"']*)[\"']$"
+
+  - id: cryptoscope.node.rsa.publicencrypt.generic
+    languages: [javascript, typescript]
+    message: RSA encrypt/decrypt primitive usage detected.
+    severity: INFO
+    metadata:
+      category: cipher
+    pattern-either:
+      - pattern: crypto.publicEncrypt(...)
+      - pattern: publicEncrypt(...)
+      - pattern: crypto.privateDecrypt(...)
+      - pattern: privateDecrypt(...)
+
+  - id: cryptoscope.node.rsa.oaep.sha1
+    languages: [javascript, typescript]
+    message: RSA-OAEP with SHA-1 detected (consider SHA-256+).
+    severity: WARNING
+    metadata:
+      category: cipher
+      recommendation: Use OAEP with SHA-256+ (oaepHash: 'sha256').
+    patterns:
+      - pattern-either:
+          - pattern: crypto.publicEncrypt({ ..., oaepHash: $ALG, ... }, ...)
