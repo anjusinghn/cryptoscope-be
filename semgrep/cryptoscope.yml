@@ -1029,3 +1029,49 @@ rules:
           metavariable: ALGO
           regex: "(?i)^[\"'][^\"']*(ctr|cfb|ofb)[^\"']*[\"']$"
 
+  - id: cryptoscope.node.iv.constant.bufferfrom
+    languages: [javascript, typescript]
+    message: Potential constant IV detected via Buffer.from("...").
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Use a random, unique IV for each encryption and prefer AEAD.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, $KEY, Buffer.from($IV, ...))
+          - pattern: createCipheriv($ALGO, $KEY, Buffer.from($IV, ...))
+      - metavariable-regex:
+          metavariable: IV
+          regex: "(?s)^[\"'].+[\"']$"
+
+  - id: cryptoscope.node.kdf.bcrypt
+    languages: [javascript, typescript]
+    message: bcrypt usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: bcrypt.hash(...)
+      - pattern: bcrypt.hashSync(...)
+
+  - id: cryptoscope.node.kdf.argon2
+    languages: [javascript, typescript]
+    message: Argon2 usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: argon2.hash(...)
+      - pattern: argon2.verify(...)
+
+  - id: cryptoscope.node.ecdh
+    languages: [javascript, typescript]
+    message: ECDH key agreement usage detected.
+    severity: INFO
+    metadata:
+      category: key_agreement
+    pattern-either:
+      - pattern: crypto.createECDH(...)
+      - pattern: createECDH(...)
+
+  - id: cryptoscope.node.random.randomint
