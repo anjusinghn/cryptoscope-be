@@ -914,3 +914,26 @@ rules:
     patterns:
       - pattern-either:
           - pattern: crypto.publicEncrypt({ ..., oaepHash: $ALG, ... }, ...)
+          - pattern: publicEncrypt({ ..., oaepHash: $ALG, ... }, ...)
+          - pattern: crypto.privateDecrypt({ ..., oaepHash: $ALG, ... }, ...)
+          - pattern: privateDecrypt({ ..., oaepHash: $ALG, ... }, ...)
+      - metavariable-regex:
+          metavariable: ALG
+          regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.node.kdf.scrypt.generic
+    languages: [javascript, typescript]
+    message: scrypt usage detected.
+    severity: INFO
+    metadata:
+      category: kdf
+    pattern-either:
+      - pattern: crypto.scrypt(...)
+      - pattern: scrypt(...)
+      - pattern: crypto.scryptSync(...)
+      - pattern: scryptSync(...)
+
+  - id: cryptoscope.node.kdf.scrypt.low_cost
+    languages: [javascript, typescript]
+    message: scrypt cost parameter N appears low (< 16384).
+    severity: WARNING
