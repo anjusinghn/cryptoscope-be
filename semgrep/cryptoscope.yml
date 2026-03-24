@@ -1006,3 +1006,26 @@ rules:
       - pattern-either:
           - pattern: crypto.createCipheriv($ALGO, ...)
           - pattern: createCipheriv($ALGO, ...)
+          - pattern: crypto.createDecipheriv($ALGO, ...)
+          - pattern: createDecipheriv($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'](?:des(?:-ede3)?|rc2|rc4)[^\"']*[\"']$"
+
+  - id: cryptoscope.node.aes.ctr_cfb_ofb
+    languages: [javascript, typescript]
+    message: AES in CTR/CFB/OFB detected; ensure correct usage and add authentication.
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Prefer AEAD modes like AES-GCM/ChaCha20-Poly1305.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv($ALGO, ...)
+          - pattern: createCipheriv($ALGO, ...)
+          - pattern: crypto.createDecipheriv($ALGO, ...)
+          - pattern: createDecipheriv($ALGO, ...)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"'][^\"']*(ctr|cfb|ofb)[^\"']*[\"']$"
+
