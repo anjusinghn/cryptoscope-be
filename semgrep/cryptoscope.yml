@@ -846,3 +846,26 @@ rules:
       - pattern: randombytes_buf_deterministic(...)
       - pattern: randombytes_uniform(...)
 
+  # =====================
+  # Additional Node.js / TypeScript coverage
+  # =====================
+  - id: cryptoscope.node.hash.generic
+    languages: [javascript, typescript]
+    message: Hash primitive usage detected.
+    severity: INFO
+    metadata:
+      category: hash
+    pattern-either:
+      - pattern: $C.createHash($ALGO, ...)
+      - pattern: createHash($ALGO, ...)
+      - pattern: CryptoJS.$FUNC(...)
+    metavariable-regex:
+      metavariable: FUNC
+      regex: "^(MD5|SHA1|SHA224|SHA256|SHA384|SHA512|SHA3|RIPEMD160)$"
+
+  - id: cryptoscope.node.signature.generic
+    languages: [javascript, typescript]
+    message: Signature primitive usage detected.
+    severity: INFO
+    metadata:
+      category: signature
