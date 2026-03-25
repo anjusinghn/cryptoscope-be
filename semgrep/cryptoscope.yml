@@ -1235,3 +1235,26 @@ rules:
 
   - id: cryptoscope.java.cipher.rc2
     languages: [java]
+    message: RC2 detected (legacy block cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead.
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
+      - metavariable-regex:
+          metavariable: ALGO
+          regex: "(?i)^[\"']?RC2(?:/[^\"']+){0,2}[\"']?$"
+
+  - id: cryptoscope.java.aes.ctr
+    languages: [java]
+    message: AES/CTR detected; ensure unique nonce and add authentication (e.g., HMAC).
+    severity: WARNING
+    metadata:
+      category: mode
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance($ALGO)
+          - pattern: javax.crypto.Cipher.getInstance($ALGO)
