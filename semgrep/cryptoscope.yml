@@ -1166,3 +1166,26 @@ rules:
 
   - id: cryptoscope.webcrypto.random.getrandomvalues
     languages: [javascript, typescript]
+    message: WebCrypto getRandomValues usage detected (CSPRNG).
+    severity: INFO
+    metadata:
+      category: random
+    pattern-either:
+      - pattern: crypto.getRandomValues(...)
+      - pattern: window.crypto.getRandomValues(...)
+
+  # =====================
+  # Additional Java coverage
+  # =====================
+  - id: cryptoscope.java.crypto.any
+    languages: [java]
+    message: Crypto API usage detected (generic match).
+    severity: INFO
+    metadata:
+      category: primitive
+    pattern-either:
+      - pattern: MessageDigest.getInstance(...)
+      - pattern: java.security.MessageDigest.getInstance(...)
+      - pattern: Mac.getInstance(...)
+      - pattern: javax.crypto.Mac.getInstance(...)
+      - pattern: Cipher.getInstance(...)
