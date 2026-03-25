@@ -1281,3 +1281,48 @@ rules:
     message: PBKDF2WithHmacSHA1 detected.
     severity: WARNING
     metadata:
+      category: kdf
+      recommendation: Prefer PBKDF2WithHmacSHA256/512 or Argon2/scrypt.
+    pattern-either:
+      - pattern: SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+      - pattern: javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+
+  - id: cryptoscope.java.mac.hmacmd5
+    languages: [java]
+    message: HmacMD5 detected (weak MAC).
+    severity: ERROR
+    metadata:
+      category: mac
+      recommendation: Use HmacSHA256/384/512.
+    pattern-either:
+      - pattern: Mac.getInstance("HmacMD5")
+      - pattern: javax.crypto.Mac.getInstance("HmacMD5")
+
+  - id: cryptoscope.java.gcm.tag.short
+    languages: [java]
+    message: GCM tag length appears short (< 96 bits).
+    severity: WARNING
+    metadata:
+      category: mode
+      recommendation: Use 96–128-bit tags; 128-bit is typical for AES-GCM.
+    patterns:
+      - pattern: new GCMParameterSpec($T, $IV)
+      - metavariable-comparison:
+          metavariable: T
+          comparison: T < 96
+
+  - id: cryptoscope.java.random.setseed.numeric
+    languages: [java]
+    message: SecureRandom seeded with numeric literal.
+    severity: ERROR
+    metadata:
+      category: random
+      recommendation: Avoid manual static seeding; let SecureRandom self-seed.
+    patterns:
+      - patterns:
+          - pattern: $SR.setSeed($N)
+          - pattern-inside: |
+              SecureRandom $SR = ...;
+      - metavariable-regex:
+          metavariable: N
+          regex: "^(?:-?\d+L?)$"
