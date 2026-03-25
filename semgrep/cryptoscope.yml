@@ -1120,3 +1120,26 @@ rules:
       - pattern: window.crypto.subtle.digest($ALGO, ...)
     metavariable-regex:
       metavariable: ALGO
+      regex: "(?i)^[\"']SHA-?(256|384|512)[\"']$"
+
+  - id: cryptoscope.webcrypto.aes.cbc
+    languages: [javascript, typescript]
+    message: WebCrypto AES-CBC detected; ensure IV randomness and add authentication (e.g., HMAC).
+    severity: WARNING
+    metadata:
+      category: mode
+    pattern-either:
+      - pattern: crypto.webcrypto.subtle.$FN({ name: 'AES-CBC', ... }, ...)
+      - pattern: window.crypto.subtle.$FN({ name: 'AES-CBC', ... }, ...)
+    metavariable-regex:
+      metavariable: FN
+      regex: "^(encrypt|decrypt|generateKey|importKey)$"
+
+  - id: cryptoscope.webcrypto.rsa.pkcs1v15
+    languages: [javascript, typescript]
+    message: WebCrypto RSASSA-PKCS1-v1_5 detected (legacy scheme).
+    severity: WARNING
+    metadata:
+      category: signature
+      recommendation: Prefer RSA-PSS or ECDSA with SHA-256+.
+    pattern-either:
