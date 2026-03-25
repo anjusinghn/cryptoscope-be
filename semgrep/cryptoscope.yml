@@ -1189,3 +1189,26 @@ rules:
       - pattern: Mac.getInstance(...)
       - pattern: javax.crypto.Mac.getInstance(...)
       - pattern: Cipher.getInstance(...)
+      - pattern: javax.crypto.Cipher.getInstance(...)
+      - pattern: Signature.getInstance(...)
+      - pattern: java.security.Signature.getInstance(...)
+      - pattern: KeyGenerator.getInstance(...)
+      - pattern: javax.crypto.KeyGenerator.getInstance(...)
+      - pattern: KeyPairGenerator.getInstance(...)
+      - pattern: java.security.KeyPairGenerator.getInstance(...)
+      - pattern: SecretKeyFactory.getInstance(...)
+      - pattern: javax.crypto.SecretKeyFactory.getInstance(...)
+      - pattern: KeyFactory.getInstance(...)
+      - pattern: java.security.KeyFactory.getInstance(...)
+      - pattern: KeyAgreement.getInstance(...)
+      - pattern: javax.crypto.KeyAgreement.getInstance(...)
+
+  - id: cryptoscope.java.cipher.des
+    languages: [java]
+    message: DES/3DES detected (insecure cipher).
+    severity: ERROR
+    metadata:
+      category: cipher
+      recommendation: Use AES-GCM/ChaCha20-Poly1305 instead of DES/3DES.
+    patterns:
+      - pattern-either:
