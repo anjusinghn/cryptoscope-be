@@ -1098,3 +1098,25 @@ rules:
   - id: cryptoscope.webcrypto.digest.sha1
     languages: [javascript, typescript]
     message: WebCrypto SHA-1 digest detected.
+    severity: ERROR
+    metadata:
+      category: hash
+      recommendation: Prefer SHA-256/384/512.
+    pattern-either:
+      - pattern: crypto.webcrypto.subtle.digest($ALGO, ...)
+      - pattern: window.crypto.subtle.digest($ALGO, ...)
+    metavariable-regex:
+      metavariable: ALGO
+      regex: "(?i)^[\"']sha-?1[\"']$"
+
+  - id: cryptoscope.webcrypto.digest.sha2
+    languages: [javascript, typescript]
+    message: WebCrypto SHA-2 digest usage detected.
+    severity: INFO
+    metadata:
+      category: hash
+    pattern-either:
+      - pattern: crypto.webcrypto.subtle.digest($ALGO, ...)
+      - pattern: window.crypto.subtle.digest($ALGO, ...)
+    metavariable-regex:
+      metavariable: ALGO
