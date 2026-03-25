@@ -1143,3 +1143,26 @@ rules:
       category: signature
       recommendation: Prefer RSA-PSS or ECDSA with SHA-256+.
     pattern-either:
+      - pattern: crypto.webcrypto.subtle.$FN({ name: 'RSASSA-PKCS1-v1_5', ... }, ...)
+      - pattern: window.crypto.subtle.$FN({ name: 'RSASSA-PKCS1-v1_5', ... }, ...)
+    metavariable-regex:
+      metavariable: FN
+      regex: "^(sign|verify|generateKey|importKey)$"
+
+  - id: cryptoscope.webcrypto.rsa.oaep.sha1
+    languages: [javascript, typescript]
+    message: WebCrypto RSA-OAEP with SHA-1 detected.
+    severity: WARNING
+    metadata:
+      category: cipher
+      recommendation: Use RSA-OAEP with SHA-256+.
+    patterns:
+      - pattern-either:
+          - pattern: crypto.webcrypto.subtle.$FN({ name: 'RSA-OAEP', hash: 'SHA-1', ... }, ...)
+          - pattern: window.crypto.subtle.$FN({ name: 'RSA-OAEP', hash: 'SHA-1', ... }, ...)
+      - metavariable-regex:
+          metavariable: FN
+          regex: "^(encrypt|decrypt|generateKey|importKey)$"
+
+  - id: cryptoscope.webcrypto.random.getrandomvalues
+    languages: [javascript, typescript]
